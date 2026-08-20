@@ -94,8 +94,36 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
       return null;
     }
 
-    // Read the blob as text using the Web Blob API
-    const text = await (result.blob as unknown as Blob).text();
+    // Vercel's Blob object is a ReadableStream-like object
+    // We need to read it as a stream and convert to text
+    let text: string;
+    
+    if (typeof (result.blob as any).text === 'function') {
+      // If it has text() method (standard Blob), use it
+      text = await (result.blob as any).text();
+    } else if (typeof (result.blob as any).stream === 'function') {
+      // If it has stream() method, read the stream
+      const stream = (result.blob as any).stream() as ReadableStream<Uint8Array>;
+      const reader = stream.getReader();
+      const chunks: Uint8Array[] = [];
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+      } finally {
+        reader.releaseLock();
+      }
+      
+      const buffer = Buffer.concat(chunks);
+      text = buffer.toString('utf-8');
+    } else {
+      // Fallback: try to convert to string directly
+      text = String(result.blob);
+    }
+
     const blobData: BlobData = JSON.parse(text);
 
     // Check expiration
