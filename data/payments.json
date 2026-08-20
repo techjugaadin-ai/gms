@@ -258,5 +258,16 @@
     "paymentDate": "2026-05-25",
     "paymentType": "Bank Transfer",
     "createdAt": "2026-05-25T00:00:00.000Z"
+  },
+  {
+    "id": "pay_6c07805e572f",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000014",
+    "planId": "plan_002",
+    "amount": 4000,
+    "paymentDate": "2026-08-20",
+    "paymentType": "UPI",
+    "notes": "",
+    "createdAt": "2026-08-20T20:20:27.047Z"
   }
 ]

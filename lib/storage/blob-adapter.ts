@@ -104,39 +104,31 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     } catch (responseError) {
       console.log('[retrieveBlobData] Response API failed:', responseError);
       
-      // Fallback: try JSON.stringify if it's an object
-      if (typeof result.blob === 'object') {
-        console.log('[retrieveBlobData] Attempting to stringify blob object...');
-        const stringified = JSON.stringify(result.blob);
-        
-        // Check if it's valid JSON
-        try {
-          const parsed = JSON.parse(stringified);
-          if (parsed.data !== undefined) {
-            console.log('[retrieveBlobData] Successfully parsed stringified blob');
-            return parsed.data; // Return early if it works
-          }
-        } catch {
-          // Continue to next fallback
-        }
-      }
-
-      // Last resort: try to access blob content directly
-      console.log('[retrieveBlobData] Trying direct access to blob properties...');
+      // Fallback: check if blob has a text() method (Blob API)
       const blobObj = result.blob as any;
-      
-      if (blobObj.data) {
-        console.log('[retrieveBlobData] Found blob.data property');
-        return blobObj.data;
-      }
-      if (blobObj.text) {
-        console.log('[retrieveBlobData] Found blob.text property');
-        text = typeof blobObj.text === 'function' ? await blobObj.text() : String(blobObj.text);
-      } else if (blobObj.content) {
-        console.log('[retrieveBlobData] Found blob.content property');
-        text = String(blobObj.content);
+      if (typeof blobObj.text === 'function') {
+        console.log('[retrieveBlobData] Blob has text() method, using it...');
+        text = await blobObj.text();
+      } else if (typeof blobObj.arrayBuffer === 'function') {
+        // Fallback: try arrayBuffer
+        console.log('[retrieveBlobData] Trying arrayBuffer method...');
+        const buffer = await blobObj.arrayBuffer();
+        text = new TextDecoder().decode(buffer);
+      } else if (blobObj.data) {
+        // If it's already wrapped data
+        console.log('[retrieveBlobData] Found blob.data property, using directly...');
+        const dataToCheck = blobObj.data;
+        if (typeof dataToCheck === 'string') {
+          text = dataToCheck;
+        } else {
+          throw new Error('blob.data exists but is not a string');
+        }
+      } else if (typeof blobObj === 'string') {
+        // If the blob itself is a string
+        console.log('[retrieveBlobData] Blob is already a string');
+        text = blobObj;
       } else {
-        throw new Error('Cannot read blob - no usable methods found');
+        throw new Error(`Cannot read blob - type is ${typeof blobObj}, no usable methods found`);
       }
     }
 
@@ -153,9 +145,14 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     console.log('[retrieveBlobData] ✓ Successfully retrieved:', key);
     return blobData.data;
   } catch (error) {
-    console.error('[retrieveBlobData] ✗ Failed to retrieve data:', key, '- Error:', error);
+    console.error('[retrieveBlobData] ✗ Failed to retrieve data:', key);
     if (error instanceof Error) {
-      console.error('[retrieveBlobData] Error details:', error.message);
+      console.error('[retrieveBlobData] Error:', error.message);
+      if (error.cause) console.error('[retrieveBlobData] Cause:', error.cause);
+    } else if (error instanceof SyntaxError) {
+      console.error('[retrieveBlobData] JSON Parse Error:', error.message);
+    } else {
+      console.error('[retrieveBlobData] Unknown error:', String(error));
     }
     return null;
   }

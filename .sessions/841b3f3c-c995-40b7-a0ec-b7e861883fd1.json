@@ -1,0 +1,10 @@
+{
+  "user": {
+    "id": "user_super",
+    "gymId": null,
+    "name": "Super Admin",
+    "email": "superadmin@gms.local",
+    "role": "SUPER_ADMIN"
+  },
+  "expiresAt": 1787862182434
+}

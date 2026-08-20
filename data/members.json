@@ -200,14 +200,14 @@
     "name": "Divya Thomas",
     "gender": "female",
     "phone": "+919876500014",
-    "membershipPlanId": "plan_001",
+    "membershipPlanId": "plan_002",
     "joiningDate": "2026-07-21",
     "membershipStartDate": "2026-07-21",
-    "membershipEndDate": "2026-08-21",
+    "membershipEndDate": "2026-11-21",
     "referralCode": "DIVYA35",
     "isDeleted": false,
     "createdAt": "2026-07-21T00:00:00.000Z",
-    "updatedAt": "2026-07-21T00:00:00.000Z"
+    "updatedAt": "2026-08-20T20:20:27.049Z"
   },
   {
     "id": "GYM001-M000015",
