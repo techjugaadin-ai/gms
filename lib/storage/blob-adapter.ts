@@ -93,26 +93,37 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
       return null;
     }
 
-    // Vercel's Blob object is a ReadableStream<Uint8Array>
-    // Read the stream and convert to string
-    const stream = result.blob as unknown as ReadableStream<Uint8Array>;
-    const reader = stream.getReader();
-    const decoder = new TextDecoder();
-    let text = '';
+    // Vercel's blob is a standard Web Blob object
+    // Try to read it using available methods
+    let text: string;
     
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        text += decoder.decode(value, { stream: true });
+      // Try .text() first (most reliable)
+      text = await (result.blob as any).text();
+      console.log('[retrieveBlobData] Read blob using .text() method');
+    } catch (textError) {
+      console.log('[retrieveBlobData] .text() failed, trying .stream()');
+      
+      // Fall back to .stream() if .text() fails
+      const stream = (result.blob as any).stream() as ReadableStream<Uint8Array>;
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      text = '';
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          text += decoder.decode(value, { stream: true });
+        }
+        text += decoder.decode();
+      } finally {
+        reader.releaseLock();
       }
-      // Flush the decoder
-      text += decoder.decode();
-    } finally {
-      reader.releaseLock();
+      console.log('[retrieveBlobData] Read blob using .stream() method');
     }
 
-    console.log('[retrieveBlobData] Read', text.length, 'bytes from blob');
+    console.log('[retrieveBlobData] Parsed', text.length, 'bytes from blob');
     
     const blobData: BlobData = JSON.parse(text);
 
