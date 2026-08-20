@@ -81,7 +81,6 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     console.log('[retrieveBlobData] Retrieving data with key:', key);
     
     // In Vercel environment, the SDK automatically uses the connected Blob store
-    // No need to pass token for server-side operations
     const result = await get(key, { access: 'private' });
 
     if (!result) {
@@ -94,36 +93,27 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
       return null;
     }
 
-    // Vercel's Blob object is a ReadableStream-like object
-    // We need to read it as a stream and convert to text
-    let text: string;
+    // Vercel's Blob object is a ReadableStream<Uint8Array>
+    // Read the stream and convert to string
+    const stream = result.blob as unknown as ReadableStream<Uint8Array>;
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let text = '';
     
-    if (typeof (result.blob as any).text === 'function') {
-      // If it has text() method (standard Blob), use it
-      text = await (result.blob as any).text();
-    } else if (typeof (result.blob as any).stream === 'function') {
-      // If it has stream() method, read the stream
-      const stream = (result.blob as any).stream() as ReadableStream<Uint8Array>;
-      const reader = stream.getReader();
-      const chunks: Uint8Array[] = [];
-      
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-        }
-      } finally {
-        reader.releaseLock();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
       }
-      
-      const buffer = Buffer.concat(chunks);
-      text = buffer.toString('utf-8');
-    } else {
-      // Fallback: try to convert to string directly
-      text = String(result.blob);
+      // Flush the decoder
+      text += decoder.decode();
+    } finally {
+      reader.releaseLock();
     }
 
+    console.log('[retrieveBlobData] Read', text.length, 'bytes from blob');
+    
     const blobData: BlobData = JSON.parse(text);
 
     // Check expiration
@@ -136,7 +126,7 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     console.log('[retrieveBlobData] ✓ Successfully retrieved:', key);
     return blobData.data;
   } catch (error) {
-    console.error('[retrieveBlobData] ✗ Failed to retrieve data:', error);
+    console.error('[retrieveBlobData] ✗ Failed to retrieve data:', key, '- Error:', error);
     return null;
   }
 }
