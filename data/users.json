@@ -1,0 +1,35 @@
+[
+  {
+    "id": "user_super",
+    "gymId": null,
+    "name": "Super Admin",
+    "email": "superadmin@gms.local",
+    "passwordHash": "$2b$12$kpUwgMbqxa4O8ieJ3s4C0Ooj0BaHQc40r92HGbsywDvosZPE9yRqy",
+    "role": "SUPER_ADMIN",
+    "active": true,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "user_001",
+    "gymId": "gym_001",
+    "name": "Ali Hassan",
+    "email": "owner@gms.local",
+    "passwordHash": "$2b$12$m/fE2XD4Q9f.FvK1SwzHY.TdjHYuHZI.dKkZExZ1lDxfNByGjL1Dm",
+    "role": "GYM_OWNER",
+    "active": true,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "user_002",
+    "gymId": "gym_002",
+    "name": "Ravi Kumar",
+    "email": "owner2@gms.local",
+    "passwordHash": "$2b$12$v.NkYi5EcLFhLGSz5mNav.9ba5zbi/pvHP6Nqi.gT10qbDT9B5TTe",
+    "role": "GYM_OWNER",
+    "active": true,
+    "createdAt": "2026-03-01T10:00:00Z",
+    "updatedAt": "2026-03-01T10:00:00Z"
+  }
+]

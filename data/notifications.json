@@ -1,0 +1,42 @@
+[
+  {
+    "id": "notif_5fa3801e081e",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000005",
+    "type": "MEMBERSHIP_EXPIRING_3_DAYS",
+    "message": "Rahul Singh's membership expires in 3 days",
+    "scheduledAt": "2026-08-20T14:31:09.350Z",
+    "read": false,
+    "createdAt": "2026-08-20T14:31:09.350Z"
+  },
+  {
+    "id": "notif_fcfbe83d199e",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000010",
+    "type": "MEMBERSHIP_EXPIRED_2_DAYS",
+    "message": "Deepika Rao's membership expired 2 days ago",
+    "scheduledAt": "2026-08-20T14:31:09.350Z",
+    "read": false,
+    "createdAt": "2026-08-20T14:31:09.350Z"
+  },
+  {
+    "id": "notif_b3a308b7f9fa",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000012",
+    "type": "MEMBERSHIP_EXPIRING_7_DAYS",
+    "message": "Meera Krishnan's membership expires in 7 days",
+    "scheduledAt": "2026-08-20T14:31:09.350Z",
+    "read": false,
+    "createdAt": "2026-08-20T14:31:09.350Z"
+  },
+  {
+    "id": "notif_939fac55afed",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000014",
+    "type": "MEMBERSHIP_EXPIRING_1_DAY",
+    "message": "Divya Thomas's membership expires tomorrow",
+    "scheduledAt": "2026-08-20T14:31:09.350Z",
+    "read": false,
+    "createdAt": "2026-08-20T14:31:09.350Z"
+  }
+]

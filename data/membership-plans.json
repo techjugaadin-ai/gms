@@ -1,0 +1,72 @@
+[
+  {
+    "id": "plan_001",
+    "gymId": "gym_001",
+    "name": "Monthly",
+    "durationMonths": 1,
+    "price": 1500,
+    "active": true,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "plan_002",
+    "gymId": "gym_001",
+    "name": "Quarterly",
+    "durationMonths": 3,
+    "price": 4000,
+    "active": true,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "plan_003",
+    "gymId": "gym_001",
+    "name": "Half-Yearly",
+    "durationMonths": 6,
+    "price": 7500,
+    "active": true,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "plan_004",
+    "gymId": "gym_001",
+    "name": "Yearly",
+    "durationMonths": 12,
+    "price": 14000,
+    "active": true,
+    "createdAt": "2026-01-01T10:00:00Z",
+    "updatedAt": "2026-01-01T10:00:00Z"
+  },
+  {
+    "id": "plan_005",
+    "gymId": "gym_002",
+    "name": "Monthly",
+    "durationMonths": 1,
+    "price": 1200,
+    "active": true,
+    "createdAt": "2026-03-01T10:00:00Z",
+    "updatedAt": "2026-03-01T10:00:00Z"
+  },
+  {
+    "id": "plan_006",
+    "gymId": "gym_002",
+    "name": "Quarterly",
+    "durationMonths": 3,
+    "price": 3200,
+    "active": true,
+    "createdAt": "2026-03-01T10:00:00Z",
+    "updatedAt": "2026-03-01T10:00:00Z"
+  },
+  {
+    "id": "plan_007",
+    "gymId": "gym_002",
+    "name": "Yearly",
+    "durationMonths": 12,
+    "price": 11000,
+    "active": true,
+    "createdAt": "2026-03-01T10:00:00Z",
+    "updatedAt": "2026-03-01T10:00:00Z"
+  }
+]

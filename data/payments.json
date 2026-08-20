@@ -1,0 +1,262 @@
+[
+  {
+    "id": "pay_54c220bdff3d",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000001",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-08-19",
+    "paymentType": "Cash",
+    "createdAt": "2026-08-19T00:00:00.000Z"
+  },
+  {
+    "id": "pay_063d136b1c75",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000002",
+    "planId": "plan_002",
+    "amount": 4000,
+    "paymentDate": "2026-06-14",
+    "paymentType": "UPI",
+    "createdAt": "2026-06-14T00:00:00.000Z"
+  },
+  {
+    "id": "pay_e263599b8a6e",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000003",
+    "planId": "plan_003",
+    "amount": 7500,
+    "paymentDate": "2026-04-19",
+    "paymentType": "Card",
+    "createdAt": "2026-04-19T00:00:00.000Z"
+  },
+  {
+    "id": "pay_074f977c1d97",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000004",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-07-25",
+    "paymentType": "Bank Transfer",
+    "createdAt": "2026-07-25T00:00:00.000Z"
+  },
+  {
+    "id": "pay_f36adb785f0f",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000005",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-07-23",
+    "paymentType": "Cash",
+    "createdAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "pay_266eb2fdcf82",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000006",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-07-15",
+    "paymentType": "UPI",
+    "createdAt": "2026-07-15T00:00:00.000Z"
+  },
+  {
+    "id": "pay_523ba5eaa29b",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000007",
+    "planId": "plan_002",
+    "amount": 4000,
+    "paymentDate": "2026-05-10",
+    "paymentType": "Card",
+    "createdAt": "2026-05-10T00:00:00.000Z"
+  },
+  {
+    "id": "pay_8a53f624a548",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000008",
+    "planId": "plan_004",
+    "amount": 14000,
+    "paymentDate": "2025-11-18",
+    "paymentType": "Bank Transfer",
+    "createdAt": "2025-11-18T00:00:00.000Z"
+  },
+  {
+    "id": "pay_66e018025372",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000009",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-08-04",
+    "paymentType": "Cash",
+    "createdAt": "2026-08-04T00:00:00.000Z"
+  },
+  {
+    "id": "pay_7be62ba548fe",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000010",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-07-18",
+    "paymentType": "UPI",
+    "createdAt": "2026-07-18T00:00:00.000Z"
+  },
+  {
+    "id": "pay_21603a962965",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000011",
+    "planId": "plan_002",
+    "amount": 4000,
+    "paymentDate": "2026-07-04",
+    "paymentType": "Card",
+    "createdAt": "2026-07-04T00:00:00.000Z"
+  },
+  {
+    "id": "pay_7b48e884dd5c",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000012",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-07-27",
+    "paymentType": "Bank Transfer",
+    "createdAt": "2026-07-27T00:00:00.000Z"
+  },
+  {
+    "id": "pay_c5375ea1ed32",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000013",
+    "planId": "plan_003",
+    "amount": 7500,
+    "paymentDate": "2026-01-31",
+    "paymentType": "Cash",
+    "createdAt": "2026-01-31T00:00:00.000Z"
+  },
+  {
+    "id": "pay_7a13e5e1c43f",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000014",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-07-21",
+    "paymentType": "UPI",
+    "createdAt": "2026-07-21T00:00:00.000Z"
+  },
+  {
+    "id": "pay_4c68cd0b65c4",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000015",
+    "planId": "plan_001",
+    "amount": 1500,
+    "paymentDate": "2026-08-09",
+    "paymentType": "Card",
+    "createdAt": "2026-08-09T00:00:00.000Z"
+  },
+  {
+    "id": "pay_3e7bb886a5ef",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000002",
+    "planId": "plan_001",
+    "amount": 1650,
+    "paymentDate": "2026-08-19",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-19T00:00:00.000Z"
+  },
+  {
+    "id": "pay_836738f5cb48",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000003",
+    "planId": "plan_001",
+    "amount": 1800,
+    "paymentDate": "2026-08-18",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-18T00:00:00.000Z"
+  },
+  {
+    "id": "pay_752e7ed6bf95",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000004",
+    "planId": "plan_001",
+    "amount": 1950,
+    "paymentDate": "2026-08-17",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-17T00:00:00.000Z"
+  },
+  {
+    "id": "pay_00d6669e519b",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000005",
+    "planId": "plan_001",
+    "amount": 2100,
+    "paymentDate": "2026-08-16",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-16T00:00:00.000Z"
+  },
+  {
+    "id": "pay_0449957c16bd",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000001",
+    "planId": "plan_001",
+    "amount": 2250,
+    "paymentDate": "2026-08-15",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-15T00:00:00.000Z"
+  },
+  {
+    "id": "pay_9f7e53fc798d",
+    "gymId": "gym_001",
+    "memberId": "GYM001-M000002",
+    "planId": "plan_001",
+    "amount": 2400,
+    "paymentDate": "2026-08-14",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-14T00:00:00.000Z"
+  },
+  {
+    "id": "pay_6c8f419a9afc",
+    "gymId": "gym_002",
+    "memberId": "GYM002-M000001",
+    "planId": "plan_005",
+    "amount": 1200,
+    "paymentDate": "2026-08-09",
+    "paymentType": "UPI",
+    "createdAt": "2026-08-09T00:00:00.000Z"
+  },
+  {
+    "id": "pay_b4ca9f3227bf",
+    "gymId": "gym_002",
+    "memberId": "GYM002-M000002",
+    "planId": "plan_005",
+    "amount": 1200,
+    "paymentDate": "2026-07-17",
+    "paymentType": "Cash",
+    "createdAt": "2026-07-17T00:00:00.000Z"
+  },
+  {
+    "id": "pay_34babace4dd2",
+    "gymId": "gym_002",
+    "memberId": "GYM002-M000003",
+    "planId": "plan_005",
+    "amount": 1200,
+    "paymentDate": "2026-07-30",
+    "paymentType": "Card",
+    "createdAt": "2026-07-30T00:00:00.000Z"
+  },
+  {
+    "id": "pay_82caf81d7b58",
+    "gymId": "gym_002",
+    "memberId": "GYM002-M000004",
+    "planId": "plan_006",
+    "amount": 3200,
+    "paymentDate": "2026-05-05",
+    "paymentType": "UPI",
+    "createdAt": "2026-05-05T00:00:00.000Z"
+  },
+  {
+    "id": "pay_9a37528bba61",
+    "gymId": "gym_002",
+    "memberId": "GYM002-M000005",
+    "planId": "plan_006",
+    "amount": 3200,
+    "paymentDate": "2026-05-25",
+    "paymentType": "Bank Transfer",
+    "createdAt": "2026-05-25T00:00:00.000Z"
+  }
+]
