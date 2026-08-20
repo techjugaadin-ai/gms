@@ -93,38 +93,54 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
       return null;
     }
 
-    // Vercel's blob is a standard Web Blob object
-    // Try to read it using available methods
     let text: string;
-    
+
+    // Try using Response API (works in Edge Runtime)
     try {
-      // Try .text() first (most reliable)
-      text = await (result.blob as any).text();
-      console.log('[retrieveBlobData] Read blob using .text() method');
-    } catch (textError) {
-      console.log('[retrieveBlobData] .text() failed, trying .stream()');
+      console.log('[retrieveBlobData] Trying Response API method...');
+      const response = new Response(result.blob as any);
+      text = await response.text();
+      console.log('[retrieveBlobData] Successfully read blob using Response API');
+    } catch (responseError) {
+      console.log('[retrieveBlobData] Response API failed:', responseError);
       
-      // Fall back to .stream() if .text() fails
-      const stream = (result.blob as any).stream() as ReadableStream<Uint8Array>;
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      text = '';
-      
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          text += decoder.decode(value, { stream: true });
+      // Fallback: try JSON.stringify if it's an object
+      if (typeof result.blob === 'object') {
+        console.log('[retrieveBlobData] Attempting to stringify blob object...');
+        const stringified = JSON.stringify(result.blob);
+        
+        // Check if it's valid JSON
+        try {
+          const parsed = JSON.parse(stringified);
+          if (parsed.data !== undefined) {
+            console.log('[retrieveBlobData] Successfully parsed stringified blob');
+            return parsed.data; // Return early if it works
+          }
+        } catch {
+          // Continue to next fallback
         }
-        text += decoder.decode();
-      } finally {
-        reader.releaseLock();
       }
-      console.log('[retrieveBlobData] Read blob using .stream() method');
+
+      // Last resort: try to access blob content directly
+      console.log('[retrieveBlobData] Trying direct access to blob properties...');
+      const blobObj = result.blob as any;
+      
+      if (blobObj.data) {
+        console.log('[retrieveBlobData] Found blob.data property');
+        return blobObj.data;
+      }
+      if (blobObj.text) {
+        console.log('[retrieveBlobData] Found blob.text property');
+        text = typeof blobObj.text === 'function' ? await blobObj.text() : String(blobObj.text);
+      } else if (blobObj.content) {
+        console.log('[retrieveBlobData] Found blob.content property');
+        text = String(blobObj.content);
+      } else {
+        throw new Error('Cannot read blob - no usable methods found');
+      }
     }
 
-    console.log('[retrieveBlobData] Parsed', text.length, 'bytes from blob');
-    
+    console.log('[retrieveBlobData] Parsing JSON from retrieved text...');
     const blobData: BlobData = JSON.parse(text);
 
     // Check expiration
@@ -138,6 +154,9 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     return blobData.data;
   } catch (error) {
     console.error('[retrieveBlobData] ✗ Failed to retrieve data:', key, '- Error:', error);
+    if (error instanceof Error) {
+      console.error('[retrieveBlobData] Error details:', error.message);
+    }
     return null;
   }
 }
