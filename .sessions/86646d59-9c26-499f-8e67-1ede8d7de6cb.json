@@ -1,0 +1,10 @@
+{
+  "user": {
+    "id": "user_001",
+    "gymId": "gym_001",
+    "name": "Ali Hassan",
+    "email": "owner@gms.local",
+    "role": "GYM_OWNER"
+  },
+  "expiresAt": 1787843241391
+}

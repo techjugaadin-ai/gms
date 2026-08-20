@@ -91,21 +91,27 @@ async function deleteSessionFile(sessionId: string) {
 export async function createSession(user: SessionUser): Promise<string> {
   const sessionId = uuidv4();
   const expiresAt = Date.now() + SESSION_DURATION_MS;
+  console.log('[createSession] Creating session for user:', user.email, 'sessionId:', sessionId);
+  console.log('[createSession] Using storage mode:', isBlobStorageEnabled() ? 'BLOB' : 'FILE_SYSTEM');
   await saveSession(sessionId, user, expiresAt);
-  console.log('[createSession] Created session:', sessionId, 'for user:', user.email);
+  console.log('[createSession] ✓ Session created:', sessionId, 'for user:', user.email);
   return sessionId;
 }
 
 export async function getSession(sessionId: string): Promise<SessionUser | null> {
+  console.log('[getSession] Loading session:', sessionId);
   const entry = await loadSession(sessionId);
-  console.log('[getSession] Checking session:', sessionId, 'found:', !!entry);
-  if (!entry) return null;
+  console.log('[getSession] loadSession result:', entry ? '✓ found' : '✗ not found');
+  if (!entry) {
+    console.log('[getSession] ✗ No session entry for:', sessionId);
+    return null;
+  }
   if (entry.expiresAt < Date.now()) {
-    console.log('[getSession] Session expired:', sessionId);
+    console.log('[getSession] ✗ Session expired for:', sessionId);
     await deleteSessionFile(sessionId);
     return null;
   }
-  console.log('[getSession] Returning user:', entry.user.email);
+  console.log('[getSession] ✓ Valid session for user:', entry.user.email);
   return entry.user;
 }
 
@@ -132,13 +138,14 @@ export async function clearSessionCookie(): Promise<void> {
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
-  console.log('[getCurrentUser] sessionId from cookie:', sessionId);
+  console.log('[getCurrentUser] Looking for session cookie:', SESSION_COOKIE);
+  console.log('[getCurrentUser] sessionId from cookie:', sessionId ? '✓ found' : '✗ not found');
   if (!sessionId) {
-    console.log('[getCurrentUser] No sessionId found in cookie');
+    console.log('[getCurrentUser] ✗ No sessionId in cookie, redirecting to login');
     return null;
   }
   const user = await getSession(sessionId);
-  console.log('[getCurrentUser] Session found:', !!user, 'user:', user?.email);
+  console.log('[getCurrentUser] Session lookup result:', user ? ('✓ found user: ' + user.email) : '✗ session not found or expired');
   return user;
 }
 
