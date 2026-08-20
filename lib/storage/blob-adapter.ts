@@ -81,58 +81,50 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     console.log('[retrieveBlobData] Retrieving data with key:', key);
     
     // In Vercel environment, the SDK automatically uses the connected Blob store
-    const result = await get(key, { access: 'private' });
+    // Use useCache: false for consistent reads (get latest version)
+    const result = await get(key, { access: 'private', useCache: false });
 
     if (!result) {
-      console.log('[retrieveBlobData] No blob found for key:', key);
+      console.log('[retrieveBlobData] ⚠ No blob found for key:', key);
       return null;
     }
 
     if (!result.blob) {
-      console.log('[retrieveBlobData] Blob result has no blob property for key:', key);
+      console.log('[retrieveBlobData] ⚠ Blob result has no blob property for key:', key);
       return null;
     }
 
     let text: string;
+    const blobObj = result.blob as any;
 
-    // Try using Response API (works in Edge Runtime)
-    try {
-      console.log('[retrieveBlobData] Trying Response API method...');
-      const response = new Response(result.blob as any);
-      text = await response.text();
-      console.log('[retrieveBlobData] Successfully read blob using Response API');
-    } catch (responseError) {
-      console.log('[retrieveBlobData] Response API failed:', responseError);
-      
-      // Fallback: check if blob has a text() method (Blob API)
-      const blobObj = result.blob as any;
-      if (typeof blobObj.text === 'function') {
-        console.log('[retrieveBlobData] Blob has text() method, using it...');
-        text = await blobObj.text();
-      } else if (typeof blobObj.arrayBuffer === 'function') {
-        // Fallback: try arrayBuffer
-        console.log('[retrieveBlobData] Trying arrayBuffer method...');
-        const buffer = await blobObj.arrayBuffer();
-        text = new TextDecoder().decode(buffer);
-      } else if (blobObj.data) {
-        // If it's already wrapped data
-        console.log('[retrieveBlobData] Found blob.data property, using directly...');
-        const dataToCheck = blobObj.data;
-        if (typeof dataToCheck === 'string') {
-          text = dataToCheck;
-        } else {
-          throw new Error('blob.data exists but is not a string');
-        }
-      } else if (typeof blobObj === 'string') {
-        // If the blob itself is a string
-        console.log('[retrieveBlobData] Blob is already a string');
-        text = blobObj;
-      } else {
-        throw new Error(`Cannot read blob - type is ${typeof blobObj}, no usable methods found`);
+    // Primary method: use Blob.text() if available
+    if (typeof blobObj.text === 'function') {
+      console.log('[retrieveBlobData] Using Blob.text() method...');
+      text = await blobObj.text();
+    }
+    // Fallback 1: try arrayBuffer (also a standard Blob API method)
+    else if (typeof blobObj.arrayBuffer === 'function') {
+      console.log('[retrieveBlobData] Using Blob.arrayBuffer() method...');
+      const buffer = await blobObj.arrayBuffer();
+      text = new TextDecoder().decode(buffer);
+    }
+    // Fallback 2: Response API (works in Edge Runtime)
+    else if (typeof blobObj === 'object' && !(blobObj instanceof String)) {
+      try {
+        console.log('[retrieveBlobData] Trying Response API method...');
+        const response = new Response(blobObj);
+        text = await response.text();
+      } catch (responseError) {
+        console.error('[retrieveBlobData] Response API failed:', responseError);
+        throw new Error(`Cannot read blob - tried text(), arrayBuffer(), and Response API. Blob type: ${typeof blobObj}`);
       }
     }
+    // Should not reach here, but handle edge case
+    else {
+      throw new Error(`Cannot read blob - type is ${typeof blobObj}, no usable methods found`);
+    }
 
-    console.log('[retrieveBlobData] Parsing JSON from retrieved text...');
+    console.log('[retrieveBlobData] Successfully read blob content, parsing JSON...');
     const blobData: BlobData = JSON.parse(text);
 
     // Check expiration
@@ -146,11 +138,10 @@ export async function retrieveBlobData(key: string): Promise<unknown | null> {
     return blobData.data;
   } catch (error) {
     console.error('[retrieveBlobData] ✗ Failed to retrieve data:', key);
-    if (error instanceof Error) {
+    if (error instanceof SyntaxError) {
+      console.error('[retrieveBlobData] JSON Parse Error - data might be corrupted:', error.message);
+    } else if (error instanceof Error) {
       console.error('[retrieveBlobData] Error:', error.message);
-      if (error.cause) console.error('[retrieveBlobData] Cause:', error.cause);
-    } else if (error instanceof SyntaxError) {
-      console.error('[retrieveBlobData] JSON Parse Error:', error.message);
     } else {
       console.error('[retrieveBlobData] Unknown error:', String(error));
     }
