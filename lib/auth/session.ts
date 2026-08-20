@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { SessionUser } from '@/types/user';
+import { storeBlobData, retrieveBlobData, deleteBlobData, isBlobStorageEnabled } from '@/lib/storage/blob-adapter';
 
 const SESSION_COOKIE = 'gms_session';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -21,10 +22,20 @@ async function ensureSessionsDir() {
 
 async function saveSession(sessionId: string, user: SessionUser, expiresAt: number) {
   try {
+    const sessionData = { user, expiresAt };
+    
+    // Use Blob storage if enabled
+    if (isBlobStorageEnabled()) {
+      await storeBlobData(`session:${sessionId}`, sessionData, expiresAt);
+      sessionsCache.set(sessionId, sessionData);
+      return;
+    }
+
+    // Fallback to file system storage
     await ensureSessionsDir();
     const sessionFile = path.join(SESSIONS_DIR, `${sessionId}.json`);
-    await fs.writeFile(sessionFile, JSON.stringify({ user, expiresAt }, null, 2));
-    sessionsCache.set(sessionId, { user, expiresAt });
+    await fs.writeFile(sessionFile, JSON.stringify(sessionData, null, 2));
+    sessionsCache.set(sessionId, sessionData);
   } catch (error) {
     console.error('[saveSession] Failed to save session:', error);
     sessionsCache.set(sessionId, { user, expiresAt });
@@ -36,6 +47,17 @@ async function loadSession(sessionId: string): Promise<{ user: SessionUser; expi
     // Try cache first
     const cached = sessionsCache.get(sessionId);
     if (cached) return cached;
+
+    // Try Blob storage if enabled
+    if (isBlobStorageEnabled()) {
+      const data = await retrieveBlobData(`session:${sessionId}`);
+      if (data) {
+        const session = data as { user: SessionUser; expiresAt: number };
+        sessionsCache.set(sessionId, session);
+        return session;
+      }
+      return null;
+    }
 
     // Try file system
     const sessionFile = path.join(SESSIONS_DIR, `${sessionId}.json`);
@@ -50,6 +72,14 @@ async function loadSession(sessionId: string): Promise<{ user: SessionUser; expi
 
 async function deleteSessionFile(sessionId: string) {
   try {
+    // Delete from Blob storage if enabled
+    if (isBlobStorageEnabled()) {
+      await deleteBlobData(`session:${sessionId}`);
+      sessionsCache.delete(sessionId);
+      return;
+    }
+
+    // Delete from file system
     const sessionFile = path.join(SESSIONS_DIR, `${sessionId}.json`);
     await fs.unlink(sessionFile);
     sessionsCache.delete(sessionId);
