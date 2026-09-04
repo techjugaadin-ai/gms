@@ -26,8 +26,7 @@ export function TopNav({ title, onMenuToggle }: TopNavProps) {
             // For super admin, count all notifications
             setUnread(data.data.length);
           } else {
-            // For gym owner, count unread
-            setUnread(data.data.filter((n: { read: boolean }) => !n.read).length);
+            setUnread(data.data.length);
           }
         }
       })

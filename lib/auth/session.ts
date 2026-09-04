@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import type { SessionUser } from '@/types/user';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase/client';
+import { gymRepo } from '@/lib/repositories';
 
 const SESSION_COOKIE = 'gms_session';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -120,6 +121,20 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     return null;
   }
   const user = await getSession(sessionId);
+  if (user?.role === 'GYM_OWNER' && user.gymId) {
+    const gym = await gymRepo.findById(user.gymId);
+    const today = new Date();
+    const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    const subscriptionEndUtc = gym?.subscriptionEndDate
+      ? Date.parse(`${gym.subscriptionEndDate}T00:00:00Z`)
+      : Number.NaN;
+
+    if (!gym || gym.status !== 'active' || !Number.isFinite(subscriptionEndUtc) || subscriptionEndUtc < todayUtc) {
+      await deleteSession(sessionId);
+      await clearSessionCookie();
+      return null;
+    }
+  }
   if (user) {
     console.log('[getCurrentUser] ✓ Valid session for user:', user.email, 'gymId:', user.gymId);
   } else {

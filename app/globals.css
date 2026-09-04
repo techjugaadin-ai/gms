@@ -118,16 +118,6 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Improve default form and control sizing for touch devices */
-button,
-input,
-select,
-textarea {
-  padding: 0.6rem 0.9rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-}
-
 a {
   color: var(--color-primary);
   text-decoration: none;

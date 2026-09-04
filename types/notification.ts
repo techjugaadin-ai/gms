@@ -1,10 +1,6 @@
 export type NotificationType =
-  | 'MEMBERSHIP_EXPIRING_7_DAYS'
-  | 'MEMBERSHIP_EXPIRING_3_DAYS'
-  | 'MEMBERSHIP_EXPIRING_1_DAY'
-  | 'MEMBERSHIP_EXPIRED_TODAY'
-  | 'MEMBERSHIP_EXPIRED_2_DAYS'
-  | 'MEMBERSHIP_EXPIRED_7_DAYS'
+  | 'MEMBERSHIP_EXPIRING_SOON'
+  | 'MEMBERSHIP_EXPIRED'
   | 'PAYMENT_PENDING';
 
 export interface Notification {
@@ -16,4 +12,5 @@ export interface Notification {
   scheduledAt: string;
   read: boolean;
   createdAt: string;
+  daysUntilExpiry?: number;
 }

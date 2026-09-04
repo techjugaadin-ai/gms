@@ -86,8 +86,8 @@ export default function ReportsPage() {
             ))}
             {filter === 'custom' && (
               <div className="flex flex-col sm:flex-row gap-2 w-full mt-1">
-                <DateInput id="customStart" value={customStart} onChange={setCustomStart} className="flex-1 min-w-0" />
-                <DateInput id="customEnd" value={customEnd} onChange={setCustomEnd} className="flex-1 min-w-0" />
+                <DateInput id="customStart" value={customStart} onChange={setCustomStart} className="flex-1 min-w-0" calendar />
+                <DateInput id="customEnd" value={customEnd} onChange={setCustomEnd} className="flex-1 min-w-0" calendar />
               </div>
             )}
           </div>

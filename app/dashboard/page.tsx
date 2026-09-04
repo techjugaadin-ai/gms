@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/session';
 import { getDashboardMetrics } from '@/lib/services/dashboard.service';
-import { generateNotificationsForGym } from '@/lib/services/notification.service';
 import { getGym } from '@/lib/services/gym.service';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
@@ -16,7 +15,6 @@ export default async function DashboardPage() {
   if (!user) redirect('/');
   if (user.role !== 'GYM_OWNER' || !user.gymId) redirect('/');
 
-  await generateNotificationsForGym(user.gymId);
   const [metrics, gym] = await Promise.all([
     getDashboardMetrics(user.gymId),
     getGym(user.gymId),

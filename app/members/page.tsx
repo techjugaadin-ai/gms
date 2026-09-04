@@ -29,6 +29,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [search, setSearch] = useState('');
+  const [columnFilters, setColumnFilters] = useState({ name: '', phone: '', plan: '', expiry: '', status: '' });
   const [loading, setLoading] = useState(true);
   const [paymentModal, setPaymentModal] = useState<Member | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
@@ -46,11 +47,6 @@ export default function MembersPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const filtered = members.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.phone.includes(search)
-  );
-
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const res = await fetch(`/api/members/${deleteTarget.id}`, { method: 'DELETE', credentials: 'include' });
@@ -65,6 +61,26 @@ export default function MembersPage() {
   };
 
   const getPlanName = (planId: string) => plans.find((p) => p.id === planId)?.name ?? planId;
+
+  const filtered = members.filter((m) => {
+    const status = getMembershipStatus(m.membershipEndDate);
+    const planName = getPlanName(m.membershipPlanId);
+    const matchesSearch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.phone.includes(search);
+    const matchesName = !columnFilters.name || m.name.toLowerCase().includes(columnFilters.name.toLowerCase());
+    const matchesPhone = !columnFilters.phone || m.phone.includes(columnFilters.phone);
+    const matchesPlan = !columnFilters.plan || m.membershipPlanId === columnFilters.plan;
+    const matchesExpiry = !columnFilters.expiry || (
+      columnFilters.expiry === 'expired' ? status === 'EXPIRED' :
+      columnFilters.expiry === 'expiring' ? status === 'EXPIRING_SOON' :
+      status === 'ACTIVE'
+    );
+    const matchesStatus = !columnFilters.status || status === columnFilters.status;
+    return matchesSearch && matchesName && matchesPhone && matchesPlan && matchesExpiry && matchesStatus && Boolean(planName);
+  });
+
+  const updateColumnFilter = (field: keyof typeof columnFilters, value: string) => {
+    setColumnFilters((current) => ({ ...current, [field]: value }));
+  };
 
   return (
     <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user?.name} title="Members">
@@ -96,6 +112,33 @@ export default function MembersPage() {
                       {h}
                     </th>
                   ))}
+                </tr>
+                <tr className="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                  <th className="px-3 py-2"><input aria-label="Filter by name" placeholder="Filter name" value={columnFilters.name} onChange={(e) => updateColumnFilter('name', e.target.value)} className="h-8 w-full min-w-24 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal normal-case text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" /></th>
+                  <th className="px-3 py-2"><input aria-label="Filter by phone" placeholder="Filter phone" value={columnFilters.phone} onChange={(e) => updateColumnFilter('phone', e.target.value)} className="h-8 w-full min-w-24 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal normal-case text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" /></th>
+                  <th className="px-3 py-2">
+                    <select aria-label="Filter by plan" value={columnFilters.plan} onChange={(e) => updateColumnFilter('plan', e.target.value)} className="h-8 w-full min-w-28 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal normal-case text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                      <option value="">All plans</option>
+                      {plans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
+                    </select>
+                  </th>
+                  <th className="px-3 py-2">
+                    <select aria-label="Filter by expiry" value={columnFilters.expiry} onChange={(e) => updateColumnFilter('expiry', e.target.value)} className="h-8 w-full min-w-28 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal normal-case text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                      <option value="">All expiry</option>
+                      <option value="active">Active</option>
+                      <option value="expiring">Expiring soon</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  </th>
+                  <th className="px-3 py-2">
+                    <select aria-label="Filter by status" value={columnFilters.status} onChange={(e) => updateColumnFilter('status', e.target.value)} className="h-8 w-full min-w-28 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal normal-case text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                      <option value="">All status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="EXPIRING_SOON">Expiring soon</option>
+                      <option value="EXPIRED">Expired</option>
+                    </select>
+                  </th>
+                  <th className="px-3 py-2 text-xs font-normal normal-case text-gray-400">-</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">

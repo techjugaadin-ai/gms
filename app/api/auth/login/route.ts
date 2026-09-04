@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { userRepo } from '@/lib/repositories';
+import { gymRepo, userRepo } from '@/lib/repositories';
 import { verifyPassword } from '@/lib/auth/password';
 import { createSession } from '@/lib/auth/session';
 import { LoginSchema } from '@/lib/validation/schemas';
@@ -28,6 +28,19 @@ export async function POST(req: NextRequest) {
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
       return errorResponse('INVALID_CREDENTIALS', 'Invalid email or password', 401);
+    }
+
+    if (user.role === 'GYM_OWNER' && user.gymId) {
+      const gym = await gymRepo.findById(user.gymId);
+      const todayUtc = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+      const subscriptionEndUtc = Date.parse(`${gym?.subscriptionEndDate}T00:00:00Z`);
+
+      if (!gym || gym.status !== 'active') {
+        return errorResponse('GYM_ACCESS_BLOCKED', 'Your plan is suspended. Please contact the support team.', 403);
+      }
+      if (subscriptionEndUtc < todayUtc) {
+        return errorResponse('SUBSCRIPTION_EXPIRED', 'Your subscription has expired. Please contact the support team.', 403);
+      }
     }
 
     const sessionUser = { id: user.id, gymId: user.gymId, name: user.name, email: user.email, role: user.role };

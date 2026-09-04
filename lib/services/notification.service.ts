@@ -1,64 +1,36 @@
-import { notificationRepo, memberRepo } from '@/lib/repositories';
-import { getMembershipStatus } from '@/lib/utils/date';
-import type { NotificationType, Notification } from '@/types/notification';
+import { memberRepo } from '@/lib/repositories';
+import type { Notification } from '@/types/notification';
 
 export async function getNotifications(gymId: string) {
-  return notificationRepo.findByGymId(gymId);
-}
-
-export async function markNotificationRead(id: string, gymId: string) {
-  return notificationRepo.markAsRead(id, gymId);
-}
-
-export async function markNotificationUnread(id: string, gymId: string) {
-  return notificationRepo.markAsUnread(id, gymId);
-}
-
-const NOTIFICATION_RULES: { daysOffset: number; type: NotificationType; messageFn: (name: string, days: number) => string }[] = [
-  { daysOffset: 7, type: 'MEMBERSHIP_EXPIRING_7_DAYS', messageFn: (n) => `${n}'s membership expires in 7 days` },
-  { daysOffset: 3, type: 'MEMBERSHIP_EXPIRING_3_DAYS', messageFn: (n) => `${n}'s membership expires in 3 days` },
-  { daysOffset: 1, type: 'MEMBERSHIP_EXPIRING_1_DAY', messageFn: (n) => `${n}'s membership expires tomorrow` },
-  { daysOffset: 0, type: 'MEMBERSHIP_EXPIRED_TODAY', messageFn: (n) => `${n}'s membership expired today` },
-  { daysOffset: -2, type: 'MEMBERSHIP_EXPIRED_2_DAYS', messageFn: (n) => `${n}'s membership expired 2 days ago` },
-  { daysOffset: -7, type: 'MEMBERSHIP_EXPIRED_7_DAYS', messageFn: (n) => `${n}'s membership expired 7 days ago` },
-];
-
-export async function generateNotificationsForGym(gymId: string): Promise<void> {
   const members = await memberRepo.findByGymId(gymId);
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const now = new Date().toISOString();
-
-  const expiryTypes = NOTIFICATION_RULES.map((r) => r.type);
-  let generatedCount = 0;
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const now = today.toISOString();
+  const notifications: Notification[] = [];
 
   for (const member of members) {
-    const endDate = new Date(member.membershipEndDate);
-    endDate.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const endDate = new Date(`${member.membershipEndDate}T00:00:00Z`);
+    if (Number.isNaN(endDate.getTime())) continue;
+    const diffDays = Math.round((endDate.getTime() - todayUtc) / (1000 * 60 * 60 * 24));
+    if (diffDays > 7) continue;
 
-    for (const rule of NOTIFICATION_RULES) {
-      if (diffDays === rule.daysOffset) {
-        // Remove other expiry-related notifications for this member so only one remains
-        await notificationRepo.removeTypesForMember(
-          gymId,
-          member.id,
-          expiryTypes.filter((t) => t !== rule.type)
-        );
-
-        await notificationRepo.upsertForMember({
-          id: `notif_${member.id}_${rule.type}`,
-          gymId,
-          memberId: member.id,
-          type: rule.type,
-          message: rule.messageFn(member.name, rule.daysOffset),
-          scheduledAt: now,
-          read: false,
-          createdAt: now,
-        });
-        generatedCount++;
-      }
-    }
+    notifications.push({
+      id: `live_notif_${member.id}_${diffDays < 0 ? 'expired' : 'expiring'}`,
+      gymId,
+      memberId: member.id,
+      type: diffDays < 0 ? 'MEMBERSHIP_EXPIRED' : 'MEMBERSHIP_EXPIRING_SOON',
+      message: diffDays < 0
+        ? `${member.name}'s membership expired ${Math.abs(diffDays)} days ago`
+        : diffDays === 0
+          ? `${member.name}'s membership expires today`
+          : `${member.name}'s membership expires in ${diffDays} days`,
+      scheduledAt: now,
+      read: false,
+      createdAt: now,
+      daysUntilExpiry: diffDays,
+    });
   }
-  console.log('[generateNotificationsForGym] gymId:', gymId, 'members:', members.length, 'generated:', generatedCount);
+
+  return notifications.sort((a, b) => (a.daysUntilExpiry ?? 0) - (b.daysUntilExpiry ?? 0));
 }
+
