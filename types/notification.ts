@@ -13,4 +13,6 @@ export interface Notification {
   read: boolean;
   createdAt: string;
   daysUntilExpiry?: number;
+  memberName?: string;
+  memberPhone?: string;
 }

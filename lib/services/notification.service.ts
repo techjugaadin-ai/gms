@@ -28,6 +28,8 @@ export async function getNotifications(gymId: string) {
       read: false,
       createdAt: now,
       daysUntilExpiry: diffDays,
+      memberName: member.name,
+      memberPhone: member.phone,
     });
   }
 
