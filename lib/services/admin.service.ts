@@ -16,6 +16,7 @@ export interface AdminDashboardMetrics {
 export async function getAdminDashboard(): Promise<AdminDashboardMetrics> {
   const gyms = await gymRepo.findAll();
   const today = new Date();
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
 
   let totalMembers = 0;
   for (const gym of gyms) {
@@ -32,12 +33,17 @@ export async function getAdminDashboard(): Promise<AdminDashboardMetrics> {
     .reduce((sum, g) => sum + (g.subscriptionAmount ?? 0), 0);
 
   const subscriptionsExpiringSoon = gyms.filter((g) => {
-    const end = new Date(g.subscriptionEndDate);
-    const diffDays = Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 30;
+    if (g.status !== 'active') return false;
+    const end = new Date(`${g.subscriptionEndDate}T00:00:00Z`);
+    const diffDays = Math.round((end.getTime() - todayUtc) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 7;
   }).length;
 
-  const expiredSubscriptions = gyms.filter((g) => new Date(g.subscriptionEndDate) < today).length;
+  const expiredSubscriptions = gyms.filter((g) => {
+    if (g.status !== 'active') return false;
+    const end = new Date(`${g.subscriptionEndDate}T00:00:00Z`);
+    return end.getTime() < todayUtc;
+  }).length;
 
   return {
     totalGyms: gyms.length,

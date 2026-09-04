@@ -42,15 +42,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 p-4">
+      <div className="w-full max-w-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 p-8">
           <div className="flex flex-col items-center mb-8">
-            <div className="h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center mb-3">
-              <Dumbbell className="h-7 w-7 text-white" />
+            <div className="h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+              <Dumbbell className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">GMS</h1>
-            <p className="text-sm text-gray-500 mt-1">Gym Management System</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">GMS</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Gym Management System</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,32 +75,12 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
             {error && (
-              <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-md">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2.5 rounded-lg">{error}</p>
             )}
             <Button type="submit" loading={loading} className="w-full" size="lg">
               Sign in
             </Button>
           </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <p className="text-xs text-gray-400 text-center mb-2">Demo accounts</p>
-            <div className="space-y-1">
-              <button
-                type="button"
-                onClick={() => { setEmail('superadmin@gms.local'); setPassword('Admin@123'); }}
-                className="w-full text-left text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors"
-              >
-                Super Admin: superadmin@gms.local
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEmail('owner@gms.local'); setPassword('Owner@123'); }}
-                className="w-full text-left text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors"
-              >
-                Gym Owner: owner@gms.local
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

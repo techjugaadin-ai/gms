@@ -48,5 +48,7 @@ export interface NotificationRepository {
   findUnreadByGymId(gymId: string): Promise<Notification[]>;
   create(notification: Notification): Promise<Notification>;
   markAsRead(id: string, gymId: string): Promise<boolean>;
+  markAsUnread(id: string, gymId: string): Promise<boolean>;
   upsertForMember(notification: Notification): Promise<Notification>;
+  removeTypesForMember(gymId: string, memberId: string, types: string[]): Promise<void>;
 }

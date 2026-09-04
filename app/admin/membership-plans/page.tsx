@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { useUserInfo } from '@/lib/hooks/useUserInfo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -11,6 +12,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 export default function MembershipPlansPage() {
   const { toast } = useToast();
+  const { user, gym } = useUserInfo();
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
@@ -69,7 +71,7 @@ export default function MembershipPlansPage() {
   };
 
   return (
-    <AppLayout role="GYM_OWNER" title="Membership Plans">
+    <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user?.name} title="Membership Plans">
       <div className="space-y-4 max-w-2xl">
         <div className="flex justify-end">
           <Button onClick={openCreate}>
@@ -77,37 +79,44 @@ export default function MembershipPlansPage() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50">
-              <tr>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
                 {['Plan', 'Duration', 'Price', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {loading ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">Loading...</td></tr>
               ) : plans.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">No plans yet</td></tr>
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">No plans yet</td></tr>
               ) : (
                 plans.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{p.durationMonths} month{p.durationMonths !== 1 ? 's' : ''}</td>
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">₹{p.price.toLocaleString('en-IN')}</td>
+                  <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-slate-100">{p.name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{p.durationMonths} month{p.durationMonths !== 1 ? 's' : ''}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-slate-100">₹{p.price.toLocaleString('en-IN')}</td>
                     <td className="px-4 py-3">
                       <Badge variant={p.active ? 'green' : 'gray'}>{p.active ? 'Active' : 'Inactive'}</Badge>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <button className="p-1.5 rounded hover:bg-gray-100 transition-colors" onClick={() => openEdit(p)}>
-                          <Pencil className="h-4 w-4 text-gray-500" />
+                        <button
+                          className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors"
+                          onClick={() => openEdit(p)}
+                        >
+                          <Pencil className="h-8 w-8" />
                         </button>
+
                         {p.active && (
-                          <button className="p-1.5 rounded hover:bg-red-50 transition-colors" onClick={() => handleDeactivate(p)}>
-                            <Trash2 className="h-4 w-4 text-red-400" />
+                          <button
+                            className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                            onClick={() => handleDeactivate(p)}
+                          >
+                            <Trash2 className="h-8 w-8" />
                           </button>
                         )}
                       </div>

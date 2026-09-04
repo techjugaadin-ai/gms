@@ -27,27 +27,27 @@ export default async function DashboardPage() {
 
   return (
     <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user.name} title="Dashboard">
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Collection cards */}
         <div>
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Collection</h2>
+          <h2 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">Collection</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <MetricCard title="Today's Collection" value={fmt(metrics.todayCollection)} icon={<IndianRupee className="h-5 w-5" />} valueClassName="text-green-600" />
-            <MetricCard title="This Month's Collection" value={fmt(metrics.monthlyCollection)} icon={<TrendingUp className="h-5 w-5" />} valueClassName="text-blue-600" />
-            <MetricCard title="Pending Payments" value={metrics.pendingPaymentsCount} icon={<Bell className="h-5 w-5" />} valueClassName="text-red-500" />
+            <MetricCard title="Today's Collection" value={fmt(metrics.todayCollection)} icon={<IndianRupee className="h-4 w-4" />} valueClassName="text-emerald-600 dark:text-emerald-400" />
+            <MetricCard title="This Month's Collection" value={fmt(metrics.monthlyCollection)} icon={<TrendingUp className="h-4 w-4" />} valueClassName="text-blue-600 dark:text-blue-400" />
+            <MetricCard title="Pending Payments" value={metrics.pendingPaymentsCount} icon={<Bell className="h-4 w-4" />} valueClassName="text-red-500 dark:text-red-400" />
           </div>
         </div>
 
         {/* Member stats */}
         <div>
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Members</h2>
+          <h2 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">Members</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <MetricCard title="Total Members" value={metrics.totalMembers} icon={<Users className="h-5 w-5" />} />
-            <MetricCard title="Active / No Dues" value={metrics.membersWithNoDues} icon={<UserCheck className="h-5 w-5" />} valueClassName="text-green-600" />
-            <MetricCard title="Expired / Dues" value={metrics.membersWithDues} icon={<UserX className="h-5 w-5" />} valueClassName="text-red-500" />
-            <MetricCard title="Expiring Soon (≤7 days)" value={metrics.expiringSoonMembers} icon={<CalendarDays className="h-5 w-5" />} valueClassName="text-yellow-600" />
-            <MetricCard title="New Members Today" value={metrics.newMembersToday} icon={<UserPlus className="h-5 w-5" />} />
-            <MetricCard title="New This Month" value={metrics.newMembersThisMonth} icon={<UserPlus className="h-5 w-5" />} />
+            <MetricCard title="Total Members" value={metrics.totalMembers} icon={<Users className="h-4 w-4" />} />
+            <MetricCard title="Active / No Dues" value={metrics.membersWithNoDues} icon={<UserCheck className="h-4 w-4" />} valueClassName="text-emerald-600 dark:text-emerald-400" />
+            <MetricCard title="Expired / Dues" value={metrics.membersWithDues} icon={<UserX className="h-4 w-4" />} valueClassName="text-red-500 dark:text-red-400" />
+            <MetricCard title="Expiring Soon (≤7 days)" value={metrics.expiringSoonMembers} icon={<CalendarDays className="h-4 w-4" />} valueClassName="text-amber-500 dark:text-amber-400" />
+            <MetricCard title="New Members Today" value={metrics.newMembersToday} icon={<UserPlus className="h-4 w-4" />} />
+            <MetricCard title="New This Month" value={metrics.newMembersThisMonth} icon={<UserPlus className="h-4 w-4" />} />
           </div>
         </div>
 

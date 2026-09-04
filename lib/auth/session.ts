@@ -1,68 +1,51 @@
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
-import { promises as fs } from 'fs';
-import path from 'path';
 import type { SessionUser } from '@/types/user';
-import { storeBlobData, retrieveBlobData, deleteBlobData, isBlobStorageEnabled } from '@/lib/storage/blob-adapter';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase/client';
 
 const SESSION_COOKIE = 'gms_session';
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-const SESSIONS_DIR = path.join(process.cwd(), '.sessions');
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSIONS_TABLE = 'sessions';
 
-// In-memory cache for performance (backup to file storage)
 const sessionsCache = new Map<string, { user: SessionUser; expiresAt: number }>();
-
-async function ensureSessionsDir() {
-  try {
-    await fs.mkdir(SESSIONS_DIR, { recursive: true });
-  } catch {
-    // Directory already exists
-  }
-}
 
 async function saveSession(sessionId: string, user: SessionUser, expiresAt: number) {
   try {
-    const sessionData = { user, expiresAt };
-    
-    // Use Blob storage if enabled
-    if (isBlobStorageEnabled()) {
-      await storeBlobData(`session:${sessionId}`, sessionData, expiresAt);
-      sessionsCache.set(sessionId, sessionData);
+    if (!isSupabaseConfigured) {
+      sessionsCache.set(sessionId, { user, expiresAt });
       return;
     }
 
-    // Fallback to file system storage
-    await ensureSessionsDir();
-    const sessionFile = path.join(SESSIONS_DIR, `${sessionId}.json`);
-    await fs.writeFile(sessionFile, JSON.stringify(sessionData, null, 2));
-    sessionsCache.set(sessionId, sessionData);
+    const sessionData = {
+      id: sessionId,
+      user_data: user,
+      expires_at: expiresAt,
+      created_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from(SESSIONS_TABLE).upsert(sessionData, { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+
+    sessionsCache.set(sessionId, { user, expiresAt });
   } catch (error) {
-    console.error('[saveSession] Failed to save session:', error);
+    console.error('[saveSession] Failed to save session in Supabase:', error);
     sessionsCache.set(sessionId, { user, expiresAt });
   }
 }
 
 async function loadSession(sessionId: string): Promise<{ user: SessionUser; expiresAt: number } | null> {
   try {
-    // Try cache first
     const cached = sessionsCache.get(sessionId);
     if (cached) return cached;
 
-    // Try Blob storage if enabled
-    if (isBlobStorageEnabled()) {
-      const data = await retrieveBlobData(`session:${sessionId}`);
-      if (data) {
-        const session = data as { user: SessionUser; expiresAt: number };
-        sessionsCache.set(sessionId, session);
-        return session;
-      }
+    if (!isSupabaseConfigured) {
       return null;
     }
 
-    // Try file system
-    const sessionFile = path.join(SESSIONS_DIR, `${sessionId}.json`);
-    const data = await fs.readFile(sessionFile, 'utf-8');
-    const session = JSON.parse(data);
+    const { data, error } = await supabase.from(SESSIONS_TABLE).select('*').eq('id', sessionId).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+
+    const session = { user: data.user_data as SessionUser, expiresAt: Number(data.expires_at) };
     sessionsCache.set(sessionId, session);
     return session;
   } catch {
@@ -70,18 +53,11 @@ async function loadSession(sessionId: string): Promise<{ user: SessionUser; expi
   }
 }
 
-async function deleteSessionFile(sessionId: string) {
+async function deleteSession(sessionId: string) {
   try {
-    // Delete from Blob storage if enabled
-    if (isBlobStorageEnabled()) {
-      await deleteBlobData(`session:${sessionId}`);
-      sessionsCache.delete(sessionId);
-      return;
+    if (isSupabaseConfigured) {
+      await supabase.from(SESSIONS_TABLE).delete().eq('id', sessionId);
     }
-
-    // Delete from file system
-    const sessionFile = path.join(SESSIONS_DIR, `${sessionId}.json`);
-    await fs.unlink(sessionFile);
     sessionsCache.delete(sessionId);
   } catch {
     sessionsCache.delete(sessionId);
@@ -92,7 +68,6 @@ export async function createSession(user: SessionUser): Promise<string> {
   const sessionId = uuidv4();
   const expiresAt = Date.now() + SESSION_DURATION_MS;
   console.log('[createSession] Creating session for user:', user.email, 'sessionId:', sessionId);
-  console.log('[createSession] Using storage mode:', isBlobStorageEnabled() ? 'BLOB' : 'FILE_SYSTEM');
   await saveSession(sessionId, user, expiresAt);
   console.log('[createSession] ✓ Session created:', sessionId, 'for user:', user.email);
   return sessionId;
@@ -108,7 +83,7 @@ export async function getSession(sessionId: string): Promise<SessionUser | null>
   }
   if (entry.expiresAt < Date.now()) {
     console.log('[getSession] ✗ Session expired for:', sessionId);
-    await deleteSessionFile(sessionId);
+    await deleteSession(sessionId);
     return null;
   }
   console.log('[getSession] ✓ Valid session for user:', entry.user.email);
@@ -116,7 +91,7 @@ export async function getSession(sessionId: string): Promise<SessionUser | null>
 }
 
 export async function destroySession(sessionId: string): Promise<void> {
-  await deleteSessionFile(sessionId);
+  await deleteSession(sessionId);
 }
 
 export async function setSessionCookie(sessionId: string): Promise<void> {
@@ -139,13 +114,17 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
   console.log('[getCurrentUser] Looking for session cookie:', SESSION_COOKIE);
-  console.log('[getCurrentUser] sessionId from cookie:', sessionId ? '✓ found' : '✗ not found');
+  console.log('[getCurrentUser] sessionId from cookie:', sessionId ? '✓ found: ' + sessionId.substring(0, 8) : '✗ not found');
   if (!sessionId) {
     console.log('[getCurrentUser] ✗ No sessionId in cookie, redirecting to login');
     return null;
   }
   const user = await getSession(sessionId);
-  console.log('[getCurrentUser] Session lookup result:', user ? ('✓ found user: ' + user.email) : '✗ session not found or expired');
+  if (user) {
+    console.log('[getCurrentUser] ✓ Valid session for user:', user.email, 'gymId:', user.gymId);
+  } else {
+    console.log('[getCurrentUser] ✗ Session not found or expired for sessionId:', sessionId.substring(0, 8));
+  }
   return user;
 }
 

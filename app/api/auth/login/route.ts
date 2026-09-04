@@ -18,7 +18,10 @@ export async function POST(req: NextRequest) {
 
     const { email, password } = parsed.data;
     const user = await userRepo.findByEmail(email);
-    if (!user || !user.active) {
+    if (!user) {
+      return errorResponse('INVALID_CREDENTIALS', 'Invalid email or password', 401);
+    }
+    if (!user.active) {
       return errorResponse('INVALID_CREDENTIALS', 'Invalid email or password', 401);
     }
 
@@ -36,7 +39,10 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
 
-    // Set cookie with proper options
+    // First, explicitly delete any old session cookie to force a fresh session
+    response.cookies.delete(SESSION_COOKIE);
+    
+    // Then set new cookie with proper options
     response.cookies.set({
       name: SESSION_COOKIE,
       value: sessionId,
@@ -47,6 +53,7 @@ export async function POST(req: NextRequest) {
       path: '/',
     });
 
+    console.log('[LOGIN] user:', user.email, 'gymId:', user.gymId, 'sessionId:', sessionId);
     return response;
   } catch {
     return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred', 500);

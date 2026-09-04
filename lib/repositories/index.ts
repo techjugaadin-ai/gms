@@ -1,9 +1,9 @@
-import { jsonGymRepository } from './json-file/gym';
-import { jsonUserRepository } from './json-file/user';
-import { jsonMemberRepository } from './json-file/member';
-import { jsonMembershipPlanRepository } from './json-file/membership-plan';
-import { jsonPaymentRepository } from './json-file/payment';
-import { jsonNotificationRepository } from './json-file/notification';
+import { supabaseGymRepository } from './supabase/gym';
+import { supabaseUserRepository } from './supabase/user';
+import { supabaseMemberRepository } from './supabase/member';
+import { supabaseMembershipPlanRepository } from './supabase/membership-plan';
+import { supabasePaymentRepository } from './supabase/payment';
+import { supabaseNotificationRepository } from './supabase/notification';
 
 import type {
   GymRepository,
@@ -14,9 +14,9 @@ import type {
   NotificationRepository,
 } from './interfaces';
 
-export const gymRepo: GymRepository = jsonGymRepository;
-export const userRepo: UserRepository = jsonUserRepository;
-export const memberRepo: MemberRepository = jsonMemberRepository;
-export const planRepo: MembershipPlanRepository = jsonMembershipPlanRepository;
-export const paymentRepo: PaymentRepository = jsonPaymentRepository;
-export const notificationRepo: NotificationRepository = jsonNotificationRepository;
+export const gymRepo: GymRepository = supabaseGymRepository;
+export const userRepo: UserRepository = supabaseUserRepository;
+export const memberRepo: MemberRepository = supabaseMemberRepository;
+export const planRepo: MembershipPlanRepository = supabaseMembershipPlanRepository;
+export const paymentRepo: PaymentRepository = supabasePaymentRepository;
+export const notificationRepo: NotificationRepository = supabaseNotificationRepository;

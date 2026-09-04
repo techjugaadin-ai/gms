@@ -10,7 +10,15 @@ export async function GET() {
     return errorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
   const payments = await getPayments(user.gymId);
-  return successResponse(payments);
+  
+  // Strict validation: ensure all returned payments belong to the current user's gym
+  const validated = payments.filter((p: any) => p.gymId === user.gymId);
+  if (validated.length !== payments.length) {
+    console.error('[SECURITY] Payment data mismatch! user.gymId:', user.gymId, 'returned:', payments.length, 'validated:', validated.length);
+  }
+  
+  console.log('[GET /api/payments] user:', user.email, 'gymId:', user.gymId, 'returned:', validated.length);
+  return successResponse(validated);
 }
 
 export async function POST(req: NextRequest) {

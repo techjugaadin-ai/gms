@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { useUserInfo } from '@/lib/hooks/useUserInfo';
 import { getMembershipStatus, formatDate } from '@/lib/utils/date';
 import type { Member } from '@/types/member';
 import type { MembershipPlan } from '@/types/membership-plan';
@@ -24,6 +25,7 @@ const statusBadge: Record<MembershipStatus, { variant: 'green' | 'yellow' | 'red
 export default function MembersPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, gym } = useUserInfo();
   const [members, setMembers] = useState<Member[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [search, setSearch] = useState('');
@@ -65,7 +67,7 @@ export default function MembersPage() {
   const getPlanName = (planId: string) => plans.find((p) => p.id === planId)?.name ?? planId;
 
   return (
-    <AppLayout role="GYM_OWNER" title="Members">
+    <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user?.name} title="Members">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -73,77 +75,75 @@ export default function MembersPage() {
             placeholder="Search members..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="sm:w-72"
+            className="w-full sm:w-72"
           />
-          <Link href="/members/new">
-            <Button>
+          <Link href="/members/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto gap-1.5">
               <UserPlus className="h-4 w-4" />
               Add Member
             </Button>
           </Link>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
-                <tr>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
                   {['Name', 'Phone', 'Plan', 'Expiry', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {loading ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">Loading...</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">No members found</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">No members found</td></tr>
                 ) : (
                   filtered.map((m) => {
                     const status = getMembershipStatus(m.membershipEndDate);
                     const badge = statusBadge[status];
                     return (
-                      <tr key={m.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
                         <td className="px-4 py-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{m.name}</p>
-                            <p className="text-xs text-gray-400">{m.id}</p>
-                          </div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{m.name}</p>
+                          <p className="text-xs text-gray-400 dark:text-slate-500">{m.id}</p>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{m.phone}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{getPlanName(m.membershipPlanId)}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{formatDate(m.membershipEndDate)}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{m.phone}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{getPlanName(m.membershipPlanId)}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">{formatDate(m.membershipEndDate)}</td>
                         <td className="px-4 py-3">
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-2">
                             <Link href={`/members/${m.id}`}>
-                              <button className="p-1.5 rounded hover:bg-gray-100 transition-colors" title="View">
-                                <Eye className="h-4 w-4 text-gray-500" />
+                              <button className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="View">
+                                <Eye className="h-[22px] w-[22px]" />
                               </button>
                             </Link>
                             <Link href={`/members/${m.id}/edit`}>
-                              <button className="p-1.5 rounded hover:bg-gray-100 transition-colors" title="Edit">
-                                <Pencil className="h-4 w-4 text-gray-500" />
+                              <button className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:text-amber-600 dark:hover:text-amber-400 transition-colors" title="Edit">
+                                <Pencil className="h-[22px] w-[22px]" />
                               </button>
                             </Link>
                             <button
-                              className="p-1.5 rounded hover:bg-blue-50 transition-colors"
+                              className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                               title="Record Payment"
                               onClick={() => setPaymentModal(m)}
                             >
-                              <CreditCard className="h-4 w-4 text-blue-500" />
+                              <CreditCard className="h-[22px] w-[22px]" />
                             </button>
                             <button
-                              className="p-1.5 rounded hover:bg-red-50 transition-colors"
+                              className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                               title="Delete"
                               onClick={() => setDeleteTarget(m)}
                             >
-                              <Trash2 className="h-4 w-4 text-red-400" />
+                              <Trash2 className="h-[22px] w-[22px]" />
                             </button>
                           </div>
                         </td>
@@ -155,9 +155,74 @@ export default function MembersPage() {
             </table>
           </div>
           {!loading && (
-            <div className="px-4 py-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400">{filtered.length} member{filtered.length !== 1 ? 's' : ''}</p>
+            <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/30">
+              <p className="text-xs text-gray-500 dark:text-slate-400">{filtered.length} member{filtered.length !== 1 ? 's' : ''}</p>
             </div>
+          )}
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3">
+          {loading ? (
+            <div className="text-center py-10 text-sm text-gray-400 dark:text-slate-500">Loading...</div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-10 text-sm text-gray-400 dark:text-slate-500">No members found</div>
+          ) : (
+            filtered.map((m) => {
+              const status = getMembershipStatus(m.membershipEndDate);
+              const badge = statusBadge[status];
+              return (
+                <div key={m.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{m.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">{m.phone}</p>
+                    </div>
+                    <Badge variant={badge.variant} className="flex-shrink-0">{badge.label}</Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-gray-400 dark:text-slate-500 mb-0.5">Plan</p>
+                      <p className="font-medium text-gray-800 dark:text-slate-200 truncate">{getPlanName(m.membershipPlanId)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 dark:text-slate-500 mb-0.5">Expiry</p>
+                      <p className="font-medium text-gray-800 dark:text-slate-200">{formatDate(m.membershipEndDate)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-slate-700">
+                    <Link href={`/members/${m.id}`} className="flex-1">
+                      <button className="w-full h-8 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors flex items-center justify-center gap-1">
+                        <Eye className="h-3.5 w-3.5" /> View
+                      </button>
+                    </Link>
+                    <Link href={`/members/${m.id}/edit`} className="flex-1">
+                      <button className="w-full h-8 text-xs font-medium text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors flex items-center justify-center gap-1">
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </button>
+                    </Link>
+                    <button
+                      className="flex-1 h-8 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      onClick={() => setPaymentModal(m)}
+                    >
+                      <CreditCard className="h-3.5 w-3.5" /> Pay
+                    </button>
+                    <button
+                      className="flex items-center justify-center w-8 h-8 text-gray-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      onClick={() => setDeleteTarget(m)}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          {!loading && filtered.length > 0 && (
+            <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-2">{filtered.length} member{filtered.length !== 1 ? 's' : ''}</p>
           )}
         </div>
       </div>
@@ -178,10 +243,10 @@ export default function MembersPage() {
 
       {/* Delete confirmation */}
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Remove Member">
-        <p className="text-sm text-gray-600 mb-4">
-          Are you sure you want to remove <strong>{deleteTarget?.name}</strong>? This action can be undone by an admin.
+        <p className="text-sm text-gray-600 dark:text-slate-300 mb-5">
+          Are you sure you want to remove <strong className="text-gray-900 dark:text-white">{deleteTarget?.name}</strong>?
         </p>
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
           <Button variant="danger" onClick={handleDelete}>Remove</Button>
         </div>

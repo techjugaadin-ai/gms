@@ -34,11 +34,12 @@ export async function recordPayment(gymId: string, input: CreatePaymentInput): P
 
   const saved = await paymentRepo.create(payment);
 
-  // Extend membership from the later of today or current end date
-  const base = new Date(member.membershipEndDate) > new Date() ? new Date(member.membershipEndDate) : new Date();
-  const newEnd = addMonths(base, plan.durationMonths);
+  const startDate = input.membershipStartDate ?? toISODateString(new Date());
+  const base = new Date(member.membershipEndDate) > new Date() ? new Date(member.membershipEndDate) : new Date(`${startDate}T00:00:00`);
+  const newEnd = input.membershipEndDate ? new Date(input.membershipEndDate) : addMonths(base, plan.durationMonths);
   await memberRepo.update(input.memberId, gymId, {
     membershipPlanId: input.planId,
+    membershipStartDate: startDate,
     membershipEndDate: toISODateString(newEnd),
   });
 

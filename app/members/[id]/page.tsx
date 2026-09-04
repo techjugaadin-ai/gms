@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/session';
 import { getMemberWithPayments } from '@/lib/services/member.service';
+import { getGym } from '@/lib/services/gym.service';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/Badge';
 import { getMembershipStatus, formatDate } from '@/lib/utils/date';
@@ -21,8 +22,10 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
   if (!user || user.role !== 'GYM_OWNER' || !user.gymId) redirect('/');
 
   let memberData;
+  let gym = null;
   try {
     memberData = await getMemberWithPayments(id, user.gymId);
+    gym = await getGym(user.gymId);
   } catch {
     redirect('/members');
   }
@@ -36,7 +39,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
   );
 
   return (
-    <AppLayout role="GYM_OWNER" title="Member Detail">
+    <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user.name} title="Member Detail">
       <div className="max-w-3xl space-y-6">
         {/* Back + actions */}
         <div className="flex items-center justify-between">
@@ -53,56 +56,56 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
         </div>
 
         {/* Member info */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-start justify-between mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <div className="flex items-start justify-between mb-5">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{member.name}</h2>
-              <p className="text-sm text-gray-400">{member.id}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{member.name}</h2>
+              <p className="text-sm text-gray-400 dark:text-slate-500 mt-0.5">{member.id}</p>
             </div>
             <Badge variant={badge.variant}>{badge.label}</Badge>
           </div>
-          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-            <div><dt className="text-gray-400">Phone</dt><dd className="font-medium">{member.phone}</dd></div>
-            <div><dt className="text-gray-400">Gender</dt><dd className="font-medium capitalize">{member.gender}</dd></div>
-            <div><dt className="text-gray-400">Referral Code</dt><dd className="font-mono font-medium">{member.referralCode}</dd></div>
-            <div><dt className="text-gray-400">Joining Date</dt><dd className="font-medium">{formatDate(member.joiningDate)}</dd></div>
-            {member.email && <div><dt className="text-gray-400">Email</dt><dd className="font-medium">{member.email}</dd></div>}
-            {member.phone && <div><dt className="text-gray-400">Emergency Contact</dt><dd className="font-medium">{member.emergencyContact ?? '—'}</dd></div>}
-            {member.weight && <div><dt className="text-gray-400">Weight</dt><dd className="font-medium">{member.weight} kg</dd></div>}
-            {member.height && <div><dt className="text-gray-400">Height</dt><dd className="font-medium">{member.height} cm</dd></div>}
+          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Phone</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{member.phone}</dd></div>
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Gender</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200 capitalize">{member.gender}</dd></div>
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Referral Code</dt><dd className="text-sm font-mono font-medium text-gray-800 dark:text-slate-200">{member.referralCode}</dd></div>
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Joining Date</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{formatDate(member.joiningDate)}</dd></div>
+            {member.email && <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Email</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{member.email}</dd></div>}
+            {member.emergencyContact && <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Emergency Contact</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{member.emergencyContact}</dd></div>}
+            {member.weight && <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Weight</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{member.weight} kg</dd></div>}
+            {member.height && <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Height</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{member.height} cm</dd></div>}
           </dl>
           {member.medicalInfo && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-1">Medical Information</p>
-              <p className="text-sm text-gray-700">{member.medicalInfo}</p>
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+              <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Medical Information</p>
+              <p className="text-sm text-gray-700 dark:text-slate-300">{member.medicalInfo}</p>
             </div>
           )}
         </div>
 
         {/* Membership info */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Membership</h3>
-          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-            <div><dt className="text-gray-400">Plan</dt><dd className="font-medium">{plan?.name ?? member.membershipPlanId}</dd></div>
-            <div><dt className="text-gray-400">Start Date</dt><dd className="font-medium">{formatDate(member.membershipStartDate)}</dd></div>
-            <div><dt className="text-gray-400">End Date</dt><dd className="font-medium">{formatDate(member.membershipEndDate)}</dd></div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4">Membership</h3>
+          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Plan</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{plan?.name ?? member.membershipPlanId}</dd></div>
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">Start Date</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{formatDate(member.membershipStartDate)}</dd></div>
+            <div><dt className="text-xs text-gray-400 dark:text-slate-500 mb-0.5">End Date</dt><dd className="text-sm font-medium text-gray-800 dark:text-slate-200">{formatDate(member.membershipEndDate)}</dd></div>
           </dl>
         </div>
 
         {/* Payment history */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Payment History</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4">Payment History</h3>
           {sortedPayments.length === 0 ? (
-            <p className="text-sm text-gray-400">No payments recorded.</p>
+            <p className="text-sm text-gray-400 dark:text-slate-500">No payments recorded.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {sortedPayments.map((p) => (
-                <div key={p.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <div key={p.id} className="flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-slate-700 last:border-0">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{formatDate(p.paymentDate)}</p>
-                    <p className="text-xs text-gray-400">{p.paymentType}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{formatDate(p.paymentDate)}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500">{p.paymentType}</p>
                   </div>
-                  <p className="text-sm font-semibold text-green-600">
+                  <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                     ₹{p.amount.toLocaleString('en-IN')}
                   </p>
                 </div>

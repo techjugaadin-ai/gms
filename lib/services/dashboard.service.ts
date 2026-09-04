@@ -18,11 +18,14 @@ export interface DashboardMetrics {
 }
 
 export async function getDashboardMetrics(gymId: string): Promise<DashboardMetrics> {
-  const [members, payments, notifications] = await Promise.all([
+  const [members, payments, notificationsRaw] = await Promise.all([
     memberRepo.findByGymId(gymId),
     paymentRepo.findByGymId(gymId),
     notificationRepo.findUnreadByGymId(gymId),
   ]);
+
+  // Defensive filter: ensure notifications belong to this gym
+  const notifications = (notificationsRaw || []).filter((n: any) => n.gymId === gymId);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

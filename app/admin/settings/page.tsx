@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { useUserInfo } from '@/lib/hooks/useUserInfo';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
@@ -8,6 +9,7 @@ import type { Gym } from '@/types/gym';
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { user, gym: userGym } = useUserInfo();
   const [gym, setGym] = useState<Partial<Gym>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,14 +43,14 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <AppLayout role="GYM_OWNER" title="Settings">
+      <AppLayout role="GYM_OWNER" gymName={userGym?.name} userName={user?.name} title="Settings">
         <p className="text-sm text-gray-400">Loading...</p>
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout role="GYM_OWNER" title="Settings">
+    <AppLayout role="GYM_OWNER" gymName={userGym?.name} userName={user?.name} title="Settings">
       <div className="max-w-xl">
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-base font-semibold text-gray-800 mb-5">Gym Configuration</h2>

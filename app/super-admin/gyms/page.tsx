@@ -5,8 +5,10 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { DateInput } from '@/components/ui/DateInput';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils/date';
+import { calculateSubscriptionEndDate, getTodayISODate } from '@/lib/utils/subscription';
 import type { Gym } from '@/types/gym';
 import { Eye, Ban, CheckCircle, RefreshCw } from 'lucide-react';
 
@@ -48,15 +50,25 @@ export default function GymsPage() {
   };
 
   const openRenew = (gym: Gym) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayISODate();
     setRenewTarget(gym);
     setRenewForm({
       subscriptionPlan: gym.subscriptionPlan,
       subscriptionStartDate: today,
-      subscriptionEndDate: '',
+      subscriptionEndDate: calculateSubscriptionEndDate(today, getPlanDuration(gym.subscriptionPlan)),
       paymentStatus: 'paid',
       subscriptionAmount: gym.subscriptionAmount,
     });
+  };
+
+  const getPlanDuration = (plan: string) => ({ monthly: 1, quarterly: 3, 'half-yearly': 6, yearly: 12, custom: 1 }[plan] ?? 1);
+
+  const handleRenewPlanChange = (subscriptionPlan: string) => {
+    setRenewForm((form) => ({
+      ...form,
+      subscriptionPlan,
+      subscriptionEndDate: calculateSubscriptionEndDate(form.subscriptionStartDate, getPlanDuration(subscriptionPlan)),
+    }));
   };
 
   const handleRenew = async (e: React.FormEvent) => {
@@ -144,27 +156,29 @@ export default function GymsPage() {
             <select
               className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
               value={renewForm.subscriptionPlan}
-              onChange={(e) => setRenewForm((f) => ({ ...f, subscriptionPlan: e.target.value }))}
+              onChange={(e) => handleRenewPlanChange(e.target.value)}
             >
               {['monthly', 'quarterly', 'half-yearly', 'yearly', 'custom'].map((p) => (
                 <option key={p} value={p} className="capitalize">{p}</option>
               ))}
             </select>
           </div>
-          <Input
+          <DateInput
             label="Start Date"
             id="subStart"
-            type="date"
             value={renewForm.subscriptionStartDate}
-            onChange={(e) => setRenewForm((f) => ({ ...f, subscriptionStartDate: e.target.value }))}
+            onChange={(value) => setRenewForm((f) => ({
+              ...f,
+              subscriptionStartDate: value,
+              subscriptionEndDate: calculateSubscriptionEndDate(value, getPlanDuration(f.subscriptionPlan)),
+            }))}
             required
           />
-          <Input
+          <DateInput
             label="End Date"
             id="subEnd"
-            type="date"
             value={renewForm.subscriptionEndDate}
-            onChange={(e) => setRenewForm((f) => ({ ...f, subscriptionEndDate: e.target.value }))}
+            onChange={(value) => setRenewForm((f) => ({ ...f, subscriptionEndDate: value }))}
             required
           />
           <Input

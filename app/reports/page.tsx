@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/Badge';
+import { DateInput } from '@/components/ui/DateInput';
+import { useUserInfo } from '@/lib/hooks/useUserInfo';
 import { getMembershipStatus, formatDate, isToday, isInCurrentMonth } from '@/lib/utils/date';
 import type { Member } from '@/types/member';
 import type { Payment } from '@/types/payment';
@@ -17,6 +19,7 @@ const statusBadge: Record<MembershipStatus, { variant: 'green' | 'yellow' | 'red
 type DateFilter = 'today' | 'week' | 'month' | 'custom';
 
 export default function ReportsPage() {
+  const { user, gym } = useUserInfo();
   const [members, setMembers] = useState<Member[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
@@ -63,25 +66,28 @@ export default function ReportsPage() {
   const getPlanName = (id: string) => plans.find((p) => p.id === id)?.name ?? id;
 
   return (
-    <AppLayout role="GYM_OWNER" title="Reports">
+    <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user?.name} title="Reports">
       <div className="space-y-6">
         {/* Date filter */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <div className="flex flex-wrap gap-2 items-center">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 overflow-hidden">
+          <div className="flex flex-wrap gap-2">
             {(['today', 'week', 'month', 'custom'] as DateFilter[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  filter === f
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                }`}
               >
                 {f === 'today' ? 'Today' : f === 'week' ? 'This Week' : f === 'month' ? 'This Month' : 'Custom'}
               </button>
             ))}
             {filter === 'custom' && (
-              <div className="flex gap-2 items-center">
-                <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm" />
-                <span className="text-gray-400">–</span>
-                <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm" />
+              <div className="flex flex-col sm:flex-row gap-2 w-full mt-1">
+                <DateInput id="customStart" value={customStart} onChange={setCustomStart} className="flex-1 min-w-0" />
+                <DateInput id="customEnd" value={customEnd} onChange={setCustomEnd} className="flex-1 min-w-0" />
               </div>
             )}
           </div>
@@ -89,72 +95,86 @@ export default function ReportsPage() {
 
         {/* Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center">
-            <p className="text-xs text-gray-400 mb-1">Collection</p>
-            <p className="text-2xl font-bold text-green-600">₹{collection.toLocaleString('en-IN')}</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 text-center">
+            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">Collection</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">₹{collection.toLocaleString('en-IN')}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center">
-            <p className="text-xs text-gray-400 mb-1">Total Members</p>
-            <p className="text-2xl font-bold text-gray-900">{members.length}</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 text-center">
+            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">Total Members</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{members.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center">
-            <p className="text-xs text-gray-400 mb-1">Active</p>
-            <p className="text-2xl font-bold text-green-600">{activeMembers.length}</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 text-center">
+            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">Active</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{activeMembers.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center">
-            <p className="text-xs text-gray-400 mb-1">Expired</p>
-            <p className="text-2xl font-bold text-red-500">{expired.length}</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 text-center">
+            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">Expired</p>
+            <p className="text-2xl font-bold text-red-500 dark:text-red-400">{expired.length}</p>
           </div>
         </div>
 
         {/* Expiring soon */}
         {expiringSoon.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-yellow-700">Expiring Soon ({expiringSoon.length})</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+              <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400">Expiring Soon ({expiringSoon.length})</h3>
             </div>
-            <table className="min-w-full">
-              <tbody className="divide-y divide-gray-50">
+
+            {/* Desktop table */}
+            <table className="hidden sm:table min-w-full">
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {expiringSoon.map((m) => (
-                  <tr key={m.id} className="px-4 py-3">
-                    <td className="px-4 py-2.5 text-sm font-medium text-gray-900">{m.name}</td>
-                    <td className="px-4 py-2.5 text-sm text-gray-500">{getPlanName(m.membershipPlanId)}</td>
-                    <td className="px-4 py-2.5 text-sm text-gray-500">{formatDate(m.membershipEndDate)}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge variant="yellow">Expiring Soon</Badge>
-                    </td>
+                  <tr key={m.id}>
+                    <td className="px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-slate-100">{m.name}</td>
+                    <td className="px-4 py-2.5 text-sm text-gray-500 dark:text-slate-400">{getPlanName(m.membershipPlanId)}</td>
+                    <td className="px-4 py-2.5 text-sm text-gray-500 dark:text-slate-400">{formatDate(m.membershipEndDate)}</td>
+                    <td className="px-4 py-2.5"><Badge variant="yellow">Expiring Soon</Badge></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            {/* Mobile cards */}
+            <div className="sm:hidden divide-y divide-gray-100 dark:divide-slate-700">
+              {expiringSoon.map((m) => (
+                <div key={m.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">{m.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{getPlanName(m.membershipPlanId)}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500">{formatDate(m.membershipEndDate)}</p>
+                  </div>
+                  <Badge variant="yellow" className="flex-shrink-0">Expiring</Badge>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Payments in range */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700">Payments ({filteredPayments.length})</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Payments ({filteredPayments.length})</h3>
           </div>
           {filteredPayments.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-gray-400 text-center">No payments in this period</p>
+            <p className="px-4 py-8 text-sm text-gray-400 dark:text-slate-500 text-center">No payments in this period</p>
           ) : (
             <table className="min-w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-slate-700/50">
                 <tr>
                   {['Date', 'Member', 'Amount', 'Type'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {filteredPayments.map((p) => {
                   const m = members.find((x) => x.id === p.memberId);
                   return (
-                    <tr key={p.id}>
-                      <td className="px-4 py-2.5 text-sm text-gray-600">{formatDate(p.paymentDate)}</td>
-                      <td className="px-4 py-2.5 text-sm text-gray-900">{m?.name ?? p.memberId}</td>
-                      <td className="px-4 py-2.5 text-sm font-semibold text-green-600">₹{p.amount.toLocaleString('en-IN')}</td>
-                      <td className="px-4 py-2.5 text-sm text-gray-500">{p.paymentType}</td>
+                    <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                      <td className="px-4 py-2.5 text-sm text-gray-600 dark:text-slate-300">{formatDate(p.paymentDate)}</td>
+                      <td className="px-4 py-2.5 text-sm text-gray-900 dark:text-slate-100">{m?.name ?? p.memberId}</td>
+                      <td className="px-4 py-2.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">₹{p.amount.toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-2.5 text-sm text-gray-500 dark:text-slate-400">{p.paymentType}</td>
                     </tr>
                   );
                 })}

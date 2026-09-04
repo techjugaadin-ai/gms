@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { getAdminDashboard } from '@/lib/services/admin.service';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
+import { SubscriptionNotifications } from '@/components/admin/SubscriptionNotifications';
 import { Building2, Users, IndianRupee, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 export default async function SuperAdminPage() {
@@ -15,6 +16,8 @@ export default async function SuperAdminPage() {
   return (
     <AppLayout role="SUPER_ADMIN" userName={user.name} title="Super Admin Dashboard">
       <div className="space-y-6">
+        <SubscriptionNotifications />
+        
         <div>
           <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Gyms</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -36,7 +39,7 @@ export default async function SuperAdminPage() {
         <div>
           <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Subscriptions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <MetricCard title="Expiring (30 days)" value={metrics.subscriptionsExpiringSoon} icon={<AlertTriangle className="h-5 w-5" />} valueClassName="text-yellow-600" />
+            <MetricCard title="Expiring (7 days)" value={metrics.subscriptionsExpiringSoon} icon={<AlertTriangle className="h-5 w-5" />} valueClassName="text-yellow-600" />
             <MetricCard title="Expired Subscriptions" value={metrics.expiredSubscriptions} icon={<XCircle className="h-5 w-5" />} valueClassName="text-red-500" />
             <MetricCard title="Pending Payments" value={metrics.pendingPaymentGyms} icon={<AlertTriangle className="h-5 w-5" />} valueClassName="text-orange-500" />
           </div>

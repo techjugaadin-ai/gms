@@ -11,6 +11,8 @@ export const CreateMemberSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 digits').max(15),
   membershipPlanId: z.string().min(1, 'Membership plan is required'),
   joiningDate: z.string().min(1, 'Joining date is required'),
+  membershipStartDate: z.string().optional(),
+  membershipEndDate: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   address: z.string().optional(),
   permanentAddress: z.string().optional(),
@@ -27,6 +29,8 @@ export const CreatePaymentSchema = z.object({
   planId: z.string().min(1),
   amount: z.number().positive('Amount must be positive'),
   paymentDate: z.string().min(1, 'Payment date is required'),
+  membershipStartDate: z.string().optional(),
+  membershipEndDate: z.string().optional(),
   paymentType: z.enum(['Cash', 'UPI', 'Card', 'Bank Transfer', 'Other']),
   notes: z.string().optional(),
 });

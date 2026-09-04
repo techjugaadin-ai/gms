@@ -22,8 +22,8 @@ export async function createMember(gymId: string, input: CreateMemberInput): Pro
   const plan = await planRepo.findById(input.membershipPlanId, gymId);
   if (!plan) throw new Error('PLAN_NOT_FOUND');
 
-  const startDate = new Date(input.joiningDate);
-  const endDate = addMonths(startDate, plan.durationMonths);
+  const startDate = new Date(input.membershipStartDate ?? input.joiningDate);
+  const endDate = input.membershipEndDate ? new Date(input.membershipEndDate) : addMonths(startDate, plan.durationMonths);
 
   const now = new Date().toISOString();
   const member: Member = {
@@ -58,10 +58,10 @@ export async function updateMember(id: string, gymId: string, input: UpdateMembe
 
   const updates: Partial<Member> = { ...input };
 
-  if (input.membershipPlanId && input.membershipPlanId !== member.membershipPlanId) {
+  if (input.membershipPlanId && input.membershipPlanId !== member.membershipPlanId && !input.membershipEndDate) {
     const plan = await planRepo.findById(input.membershipPlanId, gymId);
     if (!plan) throw new Error('PLAN_NOT_FOUND');
-    const start = new Date(member.membershipStartDate);
+    const start = new Date(input.membershipStartDate ?? member.membershipStartDate);
     const end = addMonths(start, plan.durationMonths);
     updates.membershipEndDate = toISODateString(end);
   }

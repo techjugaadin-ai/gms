@@ -10,7 +10,15 @@ export async function GET() {
     return errorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
   const members = await getMembers(user.gymId);
-  return successResponse(members);
+  
+  // Strict validation: ensure all returned members belong to the current user's gym
+  const validated = members.filter((m: any) => m.gymId === user.gymId);
+  if (validated.length !== members.length) {
+    console.error('[SECURITY] Data mismatch detected! user.gymId:', user.gymId, 'returned:', members.length, 'validated:', validated.length);
+  }
+  
+  console.log('[GET /api/members] user:', user.email, 'gymId:', user.gymId, 'returned:', validated.length);
+  return successResponse(validated);
 }
 
 export async function POST(req: NextRequest) {

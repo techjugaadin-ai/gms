@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input, Select, Textarea } from '@/components/ui/Input';
+import { DateInput } from '@/components/ui/DateInput';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
+import { calculateSubscriptionEndDate, getTodayISODate } from '@/lib/utils/subscription';
 import type { MembershipPlan } from '@/types/membership-plan';
 import type { CreateMemberInput } from '@/lib/validation/schemas';
 
@@ -20,7 +22,8 @@ export function MemberForm({ initialValues, memberId, onSuccess, mode }: MemberF
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Partial<CreateMemberInput>>({
-    joiningDate: new Date().toISOString().split('T')[0],
+    joiningDate: getTodayISODate(),
+    membershipStartDate: getTodayISODate(),
     gender: 'male',
     ...initialValues,
   });
@@ -33,6 +36,27 @@ export function MemberForm({ initialValues, memberId, onSuccess, mode }: MemberF
 
   const set = (field: keyof CreateMemberInput, value: unknown) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handlePlanChange = (membershipPlanId: string) => {
+    const plan = plans.find((item) => item.id === membershipPlanId);
+    setForm((prev) => ({
+      ...prev,
+      membershipPlanId,
+      membershipEndDate: plan
+        ? calculateSubscriptionEndDate(prev.membershipStartDate ?? prev.joiningDate ?? getTodayISODate(), plan.durationMonths)
+        : prev.membershipEndDate,
+    }));
+  };
+
+  const handleStartDateChange = (membershipStartDate: string) => {
+    const plan = plans.find((item) => item.id === form.membershipPlanId);
+    setForm((prev) => ({
+      ...prev,
+      joiningDate: membershipStartDate,
+      membershipStartDate,
+      membershipEndDate: plan ? calculateSubscriptionEndDate(membershipStartDate, plan.durationMonths) : prev.membershipEndDate,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +86,13 @@ export function MemberForm({ initialValues, memberId, onSuccess, mode }: MemberF
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Required Information</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Required Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Full Name *" id="name" value={form.name ?? ''} onChange={(e) => set('name', e.target.value)} required />
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Gender *</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Gender *</label>
             <select
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full h-9 rounded-lg border border-gray-300 dark:border-slate-600 px-3 text-sm text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={form.gender ?? 'male'}
               onChange={(e) => set('gender', e.target.value)}
               required
@@ -79,12 +103,12 @@ export function MemberForm({ initialValues, memberId, onSuccess, mode }: MemberF
             </select>
           </div>
           <Input label="Phone *" id="phone" value={form.phone ?? ''} onChange={(e) => set('phone', e.target.value)} required />
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Membership Plan *</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Membership Plan *</label>
             <select
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full h-9 rounded-lg border border-gray-300 dark:border-slate-600 px-3 text-sm text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={form.membershipPlanId ?? ''}
-              onChange={(e) => set('membershipPlanId', e.target.value)}
+              onChange={(e) => handlePlanChange(e.target.value)}
               required
             >
               <option value="">Select plan...</option>
@@ -93,12 +117,13 @@ export function MemberForm({ initialValues, memberId, onSuccess, mode }: MemberF
               ))}
             </select>
           </div>
-          <Input label="Joining Date *" id="joiningDate" type="date" value={form.joiningDate ?? ''} onChange={(e) => set('joiningDate', e.target.value)} required />
+          <DateInput label="Start Date *" id="joiningDate" value={form.membershipStartDate ?? form.joiningDate ?? ''} onChange={handleStartDateChange} required />
+          <DateInput label="End Date *" id="membershipEndDate" value={form.membershipEndDate ?? ''} onChange={(value) => set('membershipEndDate', value)} required />
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Optional Information</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Optional Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Email" id="email" type="email" value={form.email ?? ''} onChange={(e) => set('email', e.target.value)} />
           <Input label="Emergency Contact" id="emergencyContact" value={form.emergencyContact ?? ''} onChange={(e) => set('emergencyContact', e.target.value)} />

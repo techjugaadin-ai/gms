@@ -9,5 +9,11 @@ export async function GET() {
     return errorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
   const notifications = await getNotifications(user.gymId);
-  return successResponse(notifications);
+  // Extra safety: ensure returned notifications belong to the requesting gym
+  const filtered = (notifications || []).filter((n: any) => n.gymId === user.gymId);
+  console.log('[GET /api/notifications] user.gymId=', user.gymId, 'returned=', filtered.length, 'totalFetched=', (notifications || []).length);
+  if ((notifications || []).length > 0) {
+    console.log('[GET /api/notifications] sample gymIds=', Array.from(new Set((notifications || []).slice(0, 10).map((x: any) => x.gymId))));
+  }
+  return successResponse(filtered);
 }

@@ -8,20 +8,20 @@ interface CardProps {
 
 export function Card({ className, children }: CardProps) {
   return (
-    <div className={cn('bg-white rounded-xl shadow-sm border border-gray-100 p-5', className)}>
+    <div className={cn('bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm', className)}>
       {children}
     </div>
   );
 }
 
 export function CardHeader({ className, children }: CardProps) {
-  return <div className={cn('flex items-center justify-between mb-4', className)}>{children}</div>;
+  return <div className={cn('flex items-center justify-between gap-3 mb-4', className)}>{children}</div>;
 }
 
 export function CardTitle({ className, children }: CardProps) {
-  return <h3 className={cn('text-sm font-medium text-gray-500', className)}>{children}</h3>;
+  return <p className={cn('text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-widest', className)}>{children}</p>;
 }
 
 export function CardValue({ className, children }: CardProps) {
-  return <p className={cn('text-2xl font-bold text-gray-900 mt-1', className)}>{children}</p>;
+  return <p className={cn('text-3xl font-bold text-gray-900 dark:text-white tracking-tight', className)}>{children}</p>;
 }

@@ -13,16 +13,21 @@ export function CollectionChart({ data }: CollectionChartProps) {
   }));
 
   return (
-    <Card className="col-span-2">
-      <p className="text-sm font-medium text-gray-500 mb-4">Last 7 Days Collection</p>
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={formatted}>
-          <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${v}`} />
-          <Tooltip formatter={(v) => [`₹${Number(v).toLocaleString('en-IN')}`, 'Collection']} />
-          <Bar dataKey="amount" fill="#2563eb" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+    <Card className="p-5 w-full">
+      <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">Last 7 Days Collection</p>
+      <div className="w-full h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={formatted} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
+            <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={(v) => `₹${v / 1000}k`} width={40} axisLine={false} tickLine={false} />
+            <Tooltip
+              formatter={(v) => [`₹${Number(v).toLocaleString('en-IN')}`, 'Collection']}
+              contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: 13 }}
+            />
+            <Bar dataKey="amount" fill="#2563eb" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </Card>
   );
 }

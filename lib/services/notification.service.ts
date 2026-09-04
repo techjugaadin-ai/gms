@@ -1,5 +1,4 @@
 import { notificationRepo, memberRepo } from '@/lib/repositories';
-import { generateId } from '@/lib/utils/id';
 import { getMembershipStatus } from '@/lib/utils/date';
 import type { NotificationType, Notification } from '@/types/notification';
 
@@ -9,6 +8,10 @@ export async function getNotifications(gymId: string) {
 
 export async function markNotificationRead(id: string, gymId: string) {
   return notificationRepo.markAsRead(id, gymId);
+}
+
+export async function markNotificationUnread(id: string, gymId: string) {
+  return notificationRepo.markAsUnread(id, gymId);
 }
 
 const NOTIFICATION_RULES: { daysOffset: number; type: NotificationType; messageFn: (name: string, days: number) => string }[] = [
@@ -26,6 +29,9 @@ export async function generateNotificationsForGym(gymId: string): Promise<void> 
   today.setHours(0, 0, 0, 0);
   const now = new Date().toISOString();
 
+  const expiryTypes = NOTIFICATION_RULES.map((r) => r.type);
+  let generatedCount = 0;
+
   for (const member of members) {
     const endDate = new Date(member.membershipEndDate);
     endDate.setHours(0, 0, 0, 0);
@@ -33,8 +39,15 @@ export async function generateNotificationsForGym(gymId: string): Promise<void> 
 
     for (const rule of NOTIFICATION_RULES) {
       if (diffDays === rule.daysOffset) {
+        // Remove other expiry-related notifications for this member so only one remains
+        await notificationRepo.removeTypesForMember(
+          gymId,
+          member.id,
+          expiryTypes.filter((t) => t !== rule.type)
+        );
+
         await notificationRepo.upsertForMember({
-          id: generateId('notif'),
+          id: `notif_${member.id}_${rule.type}`,
           gymId,
           memberId: member.id,
           type: rule.type,
@@ -43,7 +56,9 @@ export async function generateNotificationsForGym(gymId: string): Promise<void> 
           read: false,
           createdAt: now,
         });
+        generatedCount++;
       }
     }
   }
+  console.log('[generateNotificationsForGym] gymId:', gymId, 'members:', members.length, 'generated:', generatedCount);
 }
