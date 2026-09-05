@@ -64,11 +64,25 @@ export function MemberForm({ initialValues, memberId, onSuccess, mode }: MemberF
     try {
       const url = mode === 'create' ? '/api/members' : `/api/members/${memberId}`;
       const method = mode === 'create' ? 'POST' : 'PATCH';
+      
+      // Clean up form data - remove undefined/null values and empty strings for optional fields
+      const cleanData = Object.entries(form).reduce((acc, [key, value]) => {
+        // Skip empty strings and NaN for optional numeric fields
+        if (value === '' || (typeof value === 'number' && isNaN(value))) {
+          return acc;
+        }
+        // Skip undefined and null values
+        if (value === undefined || value === null) {
+          return acc;
+        }
+        return { ...acc, [key]: value };
+      }, {} as any);
+      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(form),
+        body: JSON.stringify(cleanData),
       });
       const data = await res.json();
       if (!data.success) {
