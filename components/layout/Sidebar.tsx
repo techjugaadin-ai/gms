@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import {
   LayoutDashboard, Users, CreditCard, BarChart2,
-  Bell, Settings, ClipboardList, Building2, X,
+  Bell, Settings, ClipboardList, Building2, X, Info,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -28,11 +28,15 @@ const gymOwnerNav: NavItem[] = [
       { label: 'Membership Plans', href: '/admin/membership-plans' },
     ],
   },
+  { label: 'About', href: '/about', icon: Info },
 ];
 
 const superAdminNav: NavItem[] = [
   { label: 'Dashboard', href: '/super-admin', icon: LayoutDashboard },
   { label: 'Gyms', href: '/super-admin/gyms', icon: Building2 },
+  { label: 'Notifications', href: '/super-admin/notifications', icon: Bell },
+  { label: 'Settings', href: '/super-admin/settings', icon: Settings },
+  { label: 'About', href: '/about', icon: Info },
 ];
 
 interface SidebarProps {
@@ -85,12 +89,12 @@ export function Sidebar({ role, gymName, userName, mobileOpen, setMobileOpen }: 
                     'w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                     isActive(item.href, true)
                       ? 'bg-blue-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                      : 'text-white hover:bg-slate-700 hover:text-white'
                   )}
                 >
-                  <item.icon className="h-4 w-4 flex-shrink-0 opacity-80" />
+                  <item.icon className="h-4 w-4 flex-shrink-0" />
                   <span className="flex-1 text-left">{item.label}</span>
-                  <svg className={cn('h-3.5 w-3.5 transition-transform opacity-60', expandedMenu === item.href && 'rotate-90')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  <svg className={cn('h-3.5 w-3.5 transition-transform', expandedMenu === item.href && 'rotate-90')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 {expandedMenu === item.href && (
                   <div className="ml-4 mt-0.5 pl-4 border-l border-slate-700 space-y-0.5">
@@ -102,7 +106,7 @@ export function Sidebar({ role, gymName, userName, mobileOpen, setMobileOpen }: 
                           'block px-3 py-1.5 rounded-md text-sm transition-colors',
                           pathname === child.href
                             ? 'bg-blue-600 text-white font-medium'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                            : 'text-white hover:text-white hover:bg-slate-700'
                         )}
                         onClick={() => setMobileOpen(false)}
                       >
@@ -119,11 +123,11 @@ export function Sidebar({ role, gymName, userName, mobileOpen, setMobileOpen }: 
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                   isActive(item.href, false)
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    : 'text-white hover:bg-slate-700 hover:text-white'
                 )}
                 onClick={() => setMobileOpen(false)}
               >
-                <item.icon className="h-4 w-4 flex-shrink-0 opacity-80" />
+                <item.icon className="h-4 w-4 flex-shrink-0" />
                 {item.label}
               </Link>
             )}

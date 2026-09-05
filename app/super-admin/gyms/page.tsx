@@ -11,7 +11,7 @@ import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils/date';
 import { calculateSubscriptionEndDate, getTodayISODate } from '@/lib/utils/subscription';
 import type { Gym } from '@/types/gym';
-import { Eye, Ban, CheckCircle, RefreshCw, Plus, Download } from 'lucide-react';
+import { Eye, Ban, CheckCircle, RefreshCw, Plus, Download, Trash2 } from 'lucide-react';
 
 const statusBadge = (status: string) => status === 'active'
   ? { variant: 'green' as const, label: 'Active' }
@@ -31,6 +31,9 @@ export default function GymsPage() {
   const [renewTarget, setRenewTarget] = useState<Gym | null>(null);
   const [renewForm, setRenewForm] = useState({ subscriptionPlan: 'yearly', subscriptionStartDate: '', subscriptionEndDate: '', paymentStatus: 'paid', subscriptionAmount: 0 });
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Gym | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deletingData, setDeletingData] = useState(false);
 
   const fetchGyms = useCallback(async () => {
     const res = await fetch('/api/admin/gyms', { credentials: 'include' });
@@ -116,6 +119,34 @@ export default function GymsPage() {
     setSaving(false);
   };
 
+  const handleDeleteGymData = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteTarget) return;
+
+    if (deletePassword !== 'delete_data') {
+      toast('error', 'Incorrect password');
+      return;
+    }
+
+    setDeletingData(true);
+    const res = await fetch(`/api/admin/gyms/${deleteTarget.id}/delete-all-data`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ password: deletePassword }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success', 'Gym and all associated data deleted successfully');
+      setDeleteTarget(null);
+      setDeletePassword('');
+      fetchGyms();
+    } else {
+      toast('error', data.error?.message ?? 'Failed to delete gym data');
+    }
+    setDeletingData(false);
+  };
+
   return (
     <AppLayout role="SUPER_ADMIN" title="All Gyms">
       <div className="mb-6 flex justify-between items-center">
@@ -183,6 +214,13 @@ export default function GymsPage() {
                             onClick={() => openRenew(g)}
                           >
                             <RefreshCw className="h-4 w-4 text-blue-500" />
+                          </button>
+                          <button
+                            className="p-1.5 rounded hover:bg-red-50 transition-colors"
+                            title="Delete all gym data"
+                            onClick={() => setDeleteTarget(g)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
                       </td>
@@ -252,6 +290,41 @@ export default function GymsPage() {
           <div className="flex gap-3 justify-end pt-2">
             <Button type="button" variant="outline" onClick={() => setRenewTarget(null)}>Cancel</Button>
             <Button type="submit" loading={saving}>Update</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete gym data modal */}
+      <Modal open={!!deleteTarget} onClose={() => { setDeleteTarget(null); setDeletePassword(''); }} title="Delete Gym Data">
+        <form onSubmit={handleDeleteGymData} className="space-y-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <p className="text-sm font-medium text-red-800">
+              ⚠️ Warning: This will permanently delete all data for <strong>{deleteTarget?.name}</strong> including:
+            </p>
+            <ul className="text-xs text-red-700 mt-2 ml-4 list-disc">
+              <li>All members</li>
+              <li>All payments</li>
+              <li>All membership plans</li>
+              <li>The gym account itself</li>
+            </ul>
+          </div>
+          <div>
+            <label htmlFor="deletePassword" className="block text-sm font-medium text-gray-700 mb-1">
+              Enter Password to Confirm
+            </label>
+            <input
+              id="deletePassword"
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              placeholder="Enter password to confirm deletion"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-red-500 focus:outline-none"
+              required
+            />
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="outline" onClick={() => { setDeleteTarget(null); setDeletePassword(''); }}>Cancel</Button>
+            <Button type="submit" loading={deletingData} className="bg-red-600 hover:bg-red-700 text-white">Delete All Data</Button>
           </div>
         </form>
       </Modal>

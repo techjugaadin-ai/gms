@@ -1,0 +1,62 @@
+{
+  "title": "Gym Management System (GMS)",
+  "tagline": "Complete solution for managing gyms, members, and memberships",
+  "description": "Gym Management System is a comprehensive platform designed to streamline gym operations. Whether you're managing a single gym or overseeing multiple fitness centers, GMS provides all the tools you need to succeed.",
+  "features": [
+    {
+      "name": "Member Management",
+      "description": "Easily manage member profiles, track membership status, and maintain emergency contact information."
+    },
+    {
+      "name": "Membership Plans",
+      "description": "Create and customize flexible membership plans with different durations and pricing options."
+    },
+    {
+      "name": "Payment Tracking",
+      "description": "Monitor payments, track payment status, and generate detailed payment reports for financial analysis."
+    },
+    {
+      "name": "Multi-Gym Support",
+      "description": "Super-admin can manage multiple gyms with dedicated admin dashboards for each gym owner."
+    },
+    {
+      "name": "Real-time Notifications",
+      "description": "Get instant notifications for important events like expiring memberships and payment updates."
+    },
+    {
+      "name": "Detailed Reports",
+      "description": "Generate comprehensive reports for collections, member status, and financial performance."
+    },
+    {
+      "name": "Data Export",
+      "description": "Export gym data to Excel with organized sheets for gyms, members, plans, and payments."
+    },
+    {
+      "name": "Role-Based Access",
+      "description": "Secure role-based access control with separate portals for super-admins and gym owners."
+    }
+  ],
+  "version": "1.0.0",
+  "releaseNotes": [
+    {
+      "version": "1.0.0",
+      "date": "2026-09-06",
+      "changes": [
+        "Initial release of Gym Management System",
+        "Member and membership plan management",
+        "Payment tracking and reporting",
+        "Multi-gym support for super-admin",
+        "Real-time notifications",
+        "Data export to Excel",
+        "Personal settings and password management",
+        "Complete member lifecycle management"
+      ]
+    }
+  ],
+  "creator": {
+    "name": "TechJugaad",
+    "email": "techjugaad.in@gmail.com",
+    "website": "techjugaad.in"
+  },
+  "lastUpdated": "2026-09-06"
+}
