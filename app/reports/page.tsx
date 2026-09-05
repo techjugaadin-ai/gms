@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/Badge';
 import { DateInput } from '@/components/ui/DateInput';
 import { useUserInfo } from '@/lib/hooks/useUserInfo';
-import { getMembershipStatus, formatDate, isToday, isInCurrentMonth } from '@/lib/utils/date';
+import { getMembershipStatus, formatDate, isToday, isInCurrentMonth, getMondayOfCurrentWeek, getSundayOfCurrentWeek } from '@/lib/utils/date';
 import type { Member } from '@/types/member';
 import type { Payment } from '@/types/payment';
 import type { MembershipPlan } from '@/types/membership-plan';
@@ -43,12 +43,12 @@ export default function ReportsPage() {
 
   const inRange = (dateStr: string) => {
     const d = new Date(dateStr);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
     if (filter === 'today') return isToday(dateStr);
     if (filter === 'month') return isInCurrentMonth(dateStr);
     if (filter === 'week') {
-      const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
-      return d >= weekAgo && d <= today;
+      const monday = getMondayOfCurrentWeek();
+      const sunday = getSundayOfCurrentWeek();
+      return d >= monday && d <= sunday;
     }
     if (filter === 'custom' && customStart && customEnd) {
       return d >= new Date(customStart) && d <= new Date(customEnd);

@@ -1,5 +1,5 @@
 import { gymRepo, memberRepo } from '@/lib/repositories';
-import { getMembershipStatus } from '@/lib/utils/date';
+import { getMembershipStatus, getTodayIST, getDateAtMidnightIST } from '@/lib/utils/date';
 
 export interface AdminDashboardMetrics {
   totalGyms: number;
@@ -15,8 +15,8 @@ export interface AdminDashboardMetrics {
 
 export async function getAdminDashboard(): Promise<AdminDashboardMetrics> {
   const gyms = await gymRepo.findAll();
-  const today = new Date();
-  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const today = getTodayIST();
+  const todayTime = today.getTime();
 
   let totalMembers = 0;
   for (const gym of gyms) {
@@ -34,15 +34,15 @@ export async function getAdminDashboard(): Promise<AdminDashboardMetrics> {
 
   const subscriptionsExpiringSoon = gyms.filter((g) => {
     if (g.status !== 'active') return false;
-    const end = new Date(`${g.subscriptionEndDate}T00:00:00Z`);
-    const diffDays = Math.round((end.getTime() - todayUtc) / (1000 * 60 * 60 * 24));
+    const end = getDateAtMidnightIST(g.subscriptionEndDate);
+    const diffDays = Math.round((end.getTime() - todayTime) / (1000 * 60 * 60 * 24));
     return diffDays >= 0 && diffDays <= 7;
   }).length;
 
   const expiredSubscriptions = gyms.filter((g) => {
     if (g.status !== 'active') return false;
-    const end = new Date(`${g.subscriptionEndDate}T00:00:00Z`);
-    return end.getTime() < todayUtc;
+    const end = getDateAtMidnightIST(g.subscriptionEndDate);
+    return end.getTime() < todayTime;
   }).length;
 
   return {

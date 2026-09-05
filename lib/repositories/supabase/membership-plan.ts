@@ -59,4 +59,15 @@ export const supabaseMembershipPlanRepository: MembershipPlanRepository = {
     if (error) throw new Error(`Failed to delete membership plan: ${error.message}`);
     return true;
   },
+
+  async hardDelete(id, gymId) {
+    assertSupabaseConfigured();
+    const { error } = await supabase
+      .from('membership_plans')
+      .delete()
+      .eq('id', id)
+      .eq('gym_id', gymId);
+    if (error) throw new Error(`Failed to permanently delete membership plan: ${error.message}`);
+    return true;
+  },
 };

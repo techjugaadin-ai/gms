@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/session';
 import { gymRepo } from '@/lib/repositories';
 import { errorResponse, successResponse } from '@/lib/utils/api';
+import { getTodayIST, getDateAtMidnightIST } from '@/lib/utils/date';
 
 export async function GET(req: NextRequest) {
   try {
     const user = await requireRole('SUPER_ADMIN');
 
     const gyms = await gymRepo.findAll();
-    const today = new Date();
-    const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    const todayTime = getTodayIST().getTime();
     const notifications: Array<{
       id: string;
       type: 'SUBSCRIPTION_EXPIRING_SOON' | 'SUBSCRIPTION_EXPIRED';
@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
     for (const gym of gyms) {
       if (gym.status !== 'active') continue;
 
-      const endDate = new Date(`${gym.subscriptionEndDate}T00:00:00Z`);
-      const diffDays = Math.round((endDate.getTime() - todayUtc) / (1000 * 60 * 60 * 24));
+      const endDate = getDateAtMidnightIST(gym.subscriptionEndDate);
+      const diffDays = Math.round((endDate.getTime() - todayTime) / (1000 * 60 * 60 * 24));
 
       if (diffDays < 0) {
         // Expired

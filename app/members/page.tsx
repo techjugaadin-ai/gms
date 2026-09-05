@@ -13,7 +13,7 @@ import { getMembershipStatus, formatDate } from '@/lib/utils/date';
 import type { Member } from '@/types/member';
 import type { MembershipPlan } from '@/types/membership-plan';
 import type { MembershipStatus } from '@/types/member';
-import { Eye, Pencil, CreditCard, Trash2, UserPlus } from 'lucide-react';
+import { Eye, Pencil, CreditCard, Trash2, UserPlus, ChevronDown } from 'lucide-react';
 import { PaymentForm } from '@/components/payments/PaymentForm';
 
 const statusBadge: Record<MembershipStatus, { variant: 'green' | 'yellow' | 'red'; label: string }> = {
@@ -31,6 +31,7 @@ export default function MembersPage() {
   const [search, setSearch] = useState('');
   const [columnFilters, setColumnFilters] = useState({ name: '', phone: '', plan: '', expiry: '', status: '' });
   const [loading, setLoading] = useState(true);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [paymentModal, setPaymentModal] = useState<Member | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
 
@@ -200,6 +201,40 @@ export default function MembersPage() {
           {!loading && (
             <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/30">
               <p className="text-xs text-gray-500 dark:text-slate-400">{filtered.length} member{filtered.length !== 1 ? 's' : ''}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Filters */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="w-full bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Filters</span>
+            <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-slate-400 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {mobileFiltersOpen && (
+            <div className="space-y-2 bg-white dark:bg-slate-800 rounded-b-xl border border-t-0 border-gray-200 dark:border-slate-700 p-3 mt-0">
+              <input aria-label="Filter by name" placeholder="Filter name" value={columnFilters.name} onChange={(e) => updateColumnFilter('name', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" />
+              <input aria-label="Filter by phone" placeholder="Filter phone" value={columnFilters.phone} onChange={(e) => updateColumnFilter('phone', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" />
+              <select aria-label="Filter by plan" value={columnFilters.plan} onChange={(e) => updateColumnFilter('plan', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All plans</option>
+                {plans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name}</option>)}
+              </select>
+              <select aria-label="Filter by expiry" value={columnFilters.expiry} onChange={(e) => updateColumnFilter('expiry', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All expiry</option>
+                <option value="active">Active</option>
+                <option value="expiring">Expiring soon</option>
+                <option value="expired">Expired</option>
+              </select>
+              <select aria-label="Filter by status" value={columnFilters.status} onChange={(e) => updateColumnFilter('status', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="EXPIRING_SOON">Expiring soon</option>
+                <option value="EXPIRED">Expired</option>
+              </select>
             </div>
           )}
         </div>

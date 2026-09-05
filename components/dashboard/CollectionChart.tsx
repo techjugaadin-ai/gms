@@ -1,6 +1,7 @@
 'use client';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/Card';
+import { getISTDate } from '@/lib/utils/date';
 
 interface CollectionChartProps {
   data: { date: string; amount: number }[];
@@ -9,7 +10,7 @@ interface CollectionChartProps {
 export function CollectionChart({ data }: CollectionChartProps) {
   const formatted = data.map((d) => ({
     ...d,
-    label: new Date(d.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+    label: getISTDate(new Date(d.date)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
   }));
 
   return (

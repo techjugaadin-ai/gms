@@ -34,6 +34,7 @@ export interface MembershipPlanRepository {
   create(plan: MembershipPlan): Promise<MembershipPlan>;
   update(id: string, gymId: string, data: Partial<MembershipPlan>): Promise<MembershipPlan | null>;
   delete(id: string, gymId: string): Promise<boolean>;
+  hardDelete(id: string, gymId: string): Promise<boolean>;
 }
 
 export interface PaymentRepository {

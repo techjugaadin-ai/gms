@@ -60,6 +60,20 @@ export const UpdateSubscriptionSchema = z.object({
   subscriptionAmount: z.number().positive(),
 });
 
+export const OnboardGymSchema = z.object({
+  gymName: z.string().min(1, 'Gym name is required').max(100),
+  ownerName: z.string().min(1, 'Owner name is required').max(100),
+  ownerEmail: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').max(15),
+  address: z.string().min(1, 'Address is required'),
+  currency: z.string().default('INR'),
+  subscriptionPlan: z.enum(['monthly', 'quarterly', 'half-yearly', 'yearly', 'custom']),
+  subscriptionStartDate: z.string().min(1),
+  subscriptionEndDate: z.string().min(1),
+  subscriptionAmount: z.number().positive('Subscription amount must be positive'),
+});
+
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>;
 export type UpdateMemberInput = z.infer<typeof UpdateMemberSchema>;
@@ -68,3 +82,4 @@ export type CreateMembershipPlanInput = z.infer<typeof CreateMembershipPlanSchem
 export type UpdateMembershipPlanInput = z.infer<typeof UpdateMembershipPlanSchema>;
 export type UpdateGymInput = z.infer<typeof UpdateGymSchema>;
 export type UpdateSubscriptionInput = z.infer<typeof UpdateSubscriptionSchema>;
+export type OnboardGymInput = z.infer<typeof OnboardGymSchema>;

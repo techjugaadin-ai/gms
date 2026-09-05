@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +11,7 @@ import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils/date';
 import { calculateSubscriptionEndDate, getTodayISODate } from '@/lib/utils/subscription';
 import type { Gym } from '@/types/gym';
-import { Eye, Ban, CheckCircle, RefreshCw } from 'lucide-react';
+import { Eye, Ban, CheckCircle, RefreshCw, Plus, Download } from 'lucide-react';
 
 const statusBadge = (status: string) => status === 'active'
   ? { variant: 'green' as const, label: 'Active' }
@@ -19,9 +20,13 @@ const statusBadge = (status: string) => status === 'active'
 const paymentBadge = (status: string): 'green' | 'red' | 'yellow' =>
   status === 'paid' ? 'green' : status === 'pending' ? 'yellow' : 'red';
 
+interface GymWithMemberCount extends Gym {
+  memberCount?: number;
+}
+
 export default function GymsPage() {
   const { toast } = useToast();
-  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [gyms, setGyms] = useState<GymWithMemberCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [renewTarget, setRenewTarget] = useState<Gym | null>(null);
   const [renewForm, setRenewForm] = useState({ subscriptionPlan: 'yearly', subscriptionStartDate: '', subscriptionEndDate: '', paymentStatus: 'paid', subscriptionAmount: 0 });
@@ -47,6 +52,32 @@ export default function GymsPage() {
     const data = await res.json();
     if (data.success) { toast('success', `Gym ${newStatus}`); fetchGyms(); }
     else toast('error', 'Failed to update status');
+  };
+
+  const handleExport = async (gym: GymWithMemberCount) => {
+    try {
+      const res = await fetch(`/api/admin/gyms/${gym.id}/export`, {
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        toast('error', 'Failed to export gym data');
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Gym_${gym.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast('success', 'Gym data exported successfully');
+    } catch (error) {
+      toast('error', 'Failed to export gym data');
+    }
   };
 
   const openRenew = (gym: Gym) => {
@@ -87,6 +118,16 @@ export default function GymsPage() {
 
   return (
     <AppLayout role="SUPER_ADMIN" title="All Gyms">
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">All Gyms</h1>
+        <Link href="/super-admin/onboard-gym">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <Plus className="h-4 w-4" />
+            Onboard New Gym
+          </button>
+        </Link>
+      </div>
+
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-100">
@@ -109,7 +150,7 @@ export default function GymsPage() {
                         <p className="text-sm font-medium text-gray-900">{g.name}</p>
                         <p className="text-xs text-gray-400">{g.email}</p>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">—</td>
+                      <td className="px-4 py-3 text-sm text-gray-600 font-semibold">{g.memberCount ?? 0}</td>
                       <td className="px-4 py-3 text-sm text-gray-600 capitalize">{g.subscriptionPlan}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{formatDate(g.subscriptionEndDate)}</td>
                       <td className="px-4 py-3">
@@ -120,6 +161,13 @@ export default function GymsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
+                          <button
+                            className="p-1.5 rounded hover:bg-green-50 transition-colors"
+                            title="Export to Excel"
+                            onClick={() => handleExport(g)}
+                          >
+                            <Download className="h-4 w-4 text-green-600" />
+                          </button>
                           <button
                             className="p-1.5 rounded hover:bg-gray-100 transition-colors"
                             title={g.status === 'active' ? 'Suspend' : 'Activate'}
@@ -154,7 +202,7 @@ export default function GymsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Plan</label>
             <select
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 font-medium"
               value={renewForm.subscriptionPlan}
               onChange={(e) => handleRenewPlanChange(e.target.value)}
             >
@@ -192,7 +240,7 @@ export default function GymsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Payment Status</label>
             <select
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 font-medium"
               value={renewForm.paymentStatus}
               onChange={(e) => setRenewForm((f) => ({ ...f, paymentStatus: e.target.value }))}
             >

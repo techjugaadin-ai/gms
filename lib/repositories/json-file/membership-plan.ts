@@ -39,4 +39,13 @@ export const jsonMembershipPlanRepository: MembershipPlanRepository = {
     writeJsonFile(FILE, plans);
     return true;
   },
+
+  async hardDelete(id, gymId) {
+    const plans = readJsonFile<MembershipPlan>(FILE);
+    const idx = plans.findIndex((p) => p.id === id && p.gymId === gymId);
+    if (idx === -1) return false;
+    plans.splice(idx, 1);
+    writeJsonFile(FILE, plans);
+    return true;
+  },
 };

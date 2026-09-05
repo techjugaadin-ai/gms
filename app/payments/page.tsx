@@ -11,7 +11,7 @@ import { formatDate } from '@/lib/utils/date';
 import type { Payment } from '@/types/payment';
 import type { MembershipPlan } from '@/types/membership-plan';
 import type { Member } from '@/types/member';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 
 const typeColors: Record<string, 'green' | 'blue' | 'gray' | 'orange' | 'yellow'> = {
   Cash: 'green', UPI: 'blue', Card: 'orange', 'Bank Transfer': 'gray', Other: 'yellow',
@@ -25,6 +25,7 @@ export default function PaymentsPage() {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [filters, setFilters] = useState({ date: '', member: '', plan: '', amount: '', type: '' });
@@ -136,6 +137,42 @@ export default function PaymentsPage() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile Filters */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="w-full bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Filters</span>
+            <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-slate-400 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {mobileFiltersOpen && (
+            <div className="space-y-2 bg-white dark:bg-slate-800 rounded-b-xl border border-t-0 border-gray-200 dark:border-slate-700 p-3 mt-0">
+              <select aria-label="Filter by date" value={filters.date} onChange={(e) => updateFilter('date', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All dates</option>
+                {paymentDates.map((date) => <option key={date} value={date}>{formatDate(date)}</option>)}
+              </select>
+              <select aria-label="Filter by member" value={filters.member} onChange={(e) => updateFilter('member', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All members</option>
+                {paymentMembers.map((memberId) => <option key={memberId} value={memberId}>{getMemberName(memberId)}</option>)}
+              </select>
+              <select aria-label="Filter by plan" value={filters.plan} onChange={(e) => updateFilter('plan', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All plans</option>
+                {paymentPlans.map((planId) => <option key={planId} value={planId}>{getPlanName(planId)}</option>)}
+              </select>
+              <select aria-label="Filter by amount" value={filters.amount} onChange={(e) => updateFilter('amount', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All amounts</option>
+                {paymentAmounts.map((amount) => <option key={amount} value={String(amount)}>₹{amount.toLocaleString('en-IN')}</option>)}
+              </select>
+              <select aria-label="Filter by payment type" value={filters.type} onChange={(e) => updateFilter('type', e.target.value)} className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-xs font-normal text-gray-700 focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                <option value="">All types</option>
+                {paymentTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Mobile Card View */}

@@ -4,6 +4,7 @@ import { verifyPassword } from '@/lib/auth/password';
 import { createSession } from '@/lib/auth/session';
 import { LoginSchema } from '@/lib/validation/schemas';
 import { errorResponse } from '@/lib/utils/api';
+import { getTodayIST, getDateAtMidnightIST } from '@/lib/utils/date';
 
 const SESSION_COOKIE = 'gms_session';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -32,13 +33,13 @@ export async function POST(req: NextRequest) {
 
     if (user.role === 'GYM_OWNER' && user.gymId) {
       const gym = await gymRepo.findById(user.gymId);
-      const todayUtc = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
-      const subscriptionEndUtc = Date.parse(`${gym?.subscriptionEndDate}T00:00:00Z`);
+      const todayTime = getTodayIST().getTime();
+      const subscriptionEndTime = getDateAtMidnightIST(gym?.subscriptionEndDate ?? '').getTime();
 
       if (!gym || gym.status !== 'active') {
         return errorResponse('GYM_ACCESS_BLOCKED', 'Your plan is suspended. Please contact the support team.', 403);
       }
-      if (subscriptionEndUtc < todayUtc) {
+      if (subscriptionEndTime < todayTime) {
         return errorResponse('SUBSCRIPTION_EXPIRED', 'Your subscription has expired. Please contact the support team.', 403);
       }
     }

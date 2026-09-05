@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/Toast';
 import type { MembershipPlan } from '@/types/membership-plan';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 
 export default function MembershipPlansPage() {
   const { toast } = useToast();
@@ -16,6 +16,7 @@ export default function MembershipPlansPage() {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState<MembershipPlan | null>(null);
   const [editTarget, setEditTarget] = useState<MembershipPlan | null>(null);
   const [form, setForm] = useState({ name: '', durationMonths: 1, price: 0, active: true });
   const [saving, setSaving] = useState(false);
@@ -70,6 +71,41 @@ export default function MembershipPlansPage() {
     else toast('error', 'Failed to deactivate');
   };
 
+  const handleToggleStatus = async (plan: MembershipPlan) => {
+    setSaving(true);
+    const res = await fetch(`/api/membership-plans/${plan.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ active: !plan.active }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success', `Plan ${!plan.active ? 'activated' : 'deactivated'}`);
+      fetchPlans();
+    } else {
+      toast('error', data.error?.message ?? 'Failed to update status');
+    }
+    setSaving(false);
+  };
+
+  const handlePermanentDelete = async (plan: MembershipPlan) => {
+    setSaving(true);
+    const res = await fetch(`/api/membership-plans/${plan.id}/permanent`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success', 'Plan deleted permanently');
+      setDeleteConfirmTarget(null);
+      fetchPlans();
+    } else {
+      toast('error', data.error?.message ?? 'Failed to delete plan');
+    }
+    setSaving(false);
+  };
+
   return (
     <AppLayout role="GYM_OWNER" gymName={gym?.name} userName={user?.name} title="Membership Plans">
       <div className="space-y-4 max-w-2xl">
@@ -80,15 +116,16 @@ export default function MembershipPlansPage() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
-                {['Plan', 'Duration', 'Price', 'Status', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+                  {['Plan', 'Duration', 'Price', 'Status', 'Actions'].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {loading ? (
                 <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">Loading...</td></tr>
               ) : plans.length === 0 ? (
@@ -103,29 +140,42 @@ export default function MembershipPlansPage() {
                       <Badge variant={p.active ? 'green' : 'gray'}>{p.active ? 'Active' : 'Inactive'}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2">
                         <button
-                          className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors"
+                          className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 dark:text-blue-400 transition-colors"
                           onClick={() => openEdit(p)}
+                          title="Edit"
                         >
-                          <Pencil className="h-8 w-8" />
+                          <Pencil className="h-4 w-4" />
                         </button>
 
-                        {p.active && (
-                          <button
-                            className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                            onClick={() => handleDeactivate(p)}
-                          >
-                            <Trash2 className="h-8 w-8" />
-                          </button>
-                        )}
+                        <button
+                          className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+                            p.active
+                              ? 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-yellow-500 dark:text-yellow-400'
+                              : 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500 dark:text-green-400'
+                          }`}
+                          onClick={() => handleToggleStatus(p)}
+                          title={p.active ? 'Deactivate' : 'Activate'}
+                        >
+                          {p.active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </button>
+
+                        <button
+                          className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 dark:text-red-400 transition-colors"
+                          onClick={() => setDeleteConfirmTarget(p)}
+                          title="Delete permanently"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -155,6 +205,25 @@ export default function MembershipPlansPage() {
             <Button type="submit" loading={saving}>{editTarget ? 'Save' : 'Create'}</Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!deleteConfirmTarget} onClose={() => setDeleteConfirmTarget(null)} title="Delete Plan Permanently">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-slate-300">
+            Are you sure you want to permanently delete the plan <strong>{deleteConfirmTarget?.name}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end pt-4">
+            <Button type="button" variant="outline" onClick={() => setDeleteConfirmTarget(null)}>Cancel</Button>
+            <Button
+              type="button"
+              className="bg-red-600 hover:bg-red-700"
+              loading={saving}
+              onClick={() => deleteConfirmTarget && handlePermanentDelete(deleteConfirmTarget)}
+            >
+              Delete Permanently
+            </Button>
+          </div>
+        </div>
       </Modal>
     </AppLayout>
   );
