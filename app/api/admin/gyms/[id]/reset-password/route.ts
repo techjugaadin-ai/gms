@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCurrentUser } from '@/lib/auth/session';
+import { getCurrentUser, invalidateAllUserSessions } from '@/lib/auth/session';
 import { userRepo, gymRepo } from '@/lib/repositories';
 import { hashPassword } from '@/lib/auth/password';
 import { successResponse, errorResponse } from '@/lib/utils/api';
@@ -48,7 +48,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return errorResponse('UPDATE_FAILED', 'Failed to update password', 500);
     }
 
-    return successResponse({ message: 'Password reset successfully' });
+    // Invalidate all sessions for the gym owner (logout from all devices)
+    await invalidateAllUserSessions(owner.id);
+
+    return successResponse({ message: 'Password reset successfully. Gym owner has been logged out from all devices.' });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     console.error('Error resetting password:', msg);

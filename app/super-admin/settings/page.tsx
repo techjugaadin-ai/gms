@@ -76,8 +76,12 @@ export default function SettingsPage() {
     const data = await res.json();
     
     if (data.success) {
-      toast('success', 'Password changed successfully');
+      toast('success', 'Password changed successfully. You will be redirected to login.');
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
     } else {
       toast('error', data.error?.message ?? 'Failed to change password');
     }

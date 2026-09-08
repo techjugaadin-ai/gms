@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/lib/auth/session';
+import { getCurrentUser, invalidateAllUserSessions, clearSessionCookie } from '@/lib/auth/session';
 import { userRepo } from '@/lib/repositories';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { successResponse, errorResponse } from '@/lib/utils/api';
@@ -43,5 +43,9 @@ export async function PATCH(request: Request) {
     return errorResponse('UPDATE_FAILED', 'Failed to change password');
   }
 
-  return successResponse({ message: 'Password changed successfully' });
+  // Invalidate all sessions for this user (logout from all devices)
+  await invalidateAllUserSessions(user.id);
+  await clearSessionCookie();
+
+  return successResponse({ message: 'Password changed successfully. Please login again.' });
 }

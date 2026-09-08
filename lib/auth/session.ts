@@ -65,6 +65,53 @@ async function deleteSession(sessionId: string) {
   }
 }
 
+async function deleteAllSessionsForUser(userId: string) {
+  try {
+    // Get all sessions for this user from database
+    if (isSupabaseConfigured) {
+      const { data: sessions, error: fetchError } = await supabase
+        .from(SESSIONS_TABLE)
+        .select('id')
+        .filter('user_data->>id', 'eq', userId);
+
+      if (fetchError) throw new Error(fetchError.message);
+
+      // Delete all sessions for this user
+      if (sessions && sessions.length > 0) {
+        const sessionIds = sessions.map((s: any) => s.id);
+        const { error: deleteError } = await supabase
+          .from(SESSIONS_TABLE)
+          .delete()
+          .in('id', sessionIds);
+
+        if (deleteError) throw new Error(deleteError.message);
+
+        // Clear from cache
+        sessionIds.forEach((id: string) => {
+          sessionsCache.delete(id);
+        });
+
+        console.log(`[deleteAllSessionsForUser] Deleted ${sessionIds.length} sessions for user: ${userId}`);
+      }
+    } else {
+      // Clear from cache only if not using Supabase
+      for (const [key, value] of sessionsCache) {
+        if (value.user.id === userId) {
+          sessionsCache.delete(key);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[deleteAllSessionsForUser] Failed to delete all sessions:', error);
+    // Attempt cache cleanup anyway
+    for (const [key, value] of sessionsCache) {
+      if (value.user.id === userId) {
+        sessionsCache.delete(key);
+      }
+    }
+  }
+}
+
 export async function createSession(user: SessionUser): Promise<string> {
   const sessionId = uuidv4();
   const expiresAt = Date.now() + SESSION_DURATION_MS;
@@ -93,6 +140,10 @@ export async function getSession(sessionId: string): Promise<SessionUser | null>
 
 export async function destroySession(sessionId: string): Promise<void> {
   await deleteSession(sessionId);
+}
+
+export async function invalidateAllUserSessions(userId: string): Promise<void> {
+  await deleteAllSessionsForUser(userId);
 }
 
 export async function setSessionCookie(sessionId: string): Promise<void> {

@@ -174,7 +174,7 @@ export default function GymsPage() {
     });
     const data = await res.json();
     if (data.success) {
-      toast('success', 'Password reset successfully');
+      toast('success', 'Password reset successfully. Gym owner has been logged out from all devices.');
       setResetPasswordTarget(null);
       setNewPassword('');
       setConfirmPassword('');
