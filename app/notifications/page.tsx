@@ -17,7 +17,8 @@ const cleanPhoneNumber = (phone: string): string => {
 const generateWhatsAppMessage = (
   memberName: string,
   daysUntilExpiry: number | undefined,
-  upiNumber: string
+  upiNumber: string,
+  gymName: string | undefined
 ): string => {
   let statusText = '';
   
@@ -29,7 +30,7 @@ const generateWhatsAppMessage = (
     statusText = `Your membership will expire in ${daysUntilExpiry} days`;
   }
   
-  return `Hey ${memberName},\n\n${statusText}.\n\nPlease pay now on UPI:\n${upiNumber}`;
+  return `Hey ${memberName},\n\n${statusText}.\n\nRegards,\n${gymName || 'Gym'}`;
 };
 
 export default function NotificationsPage() {
