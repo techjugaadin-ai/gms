@@ -13,6 +13,25 @@ const cleanPhoneNumber = (phone: string): string => {
   return phone.replace(/[\s\-\(\)\+]/g, '');
 };
 
+// Utility function to generate WhatsApp message with formatting
+const generateWhatsAppMessage = (
+  memberName: string,
+  daysUntilExpiry: number | undefined,
+  upiNumber: string
+): string => {
+  let statusText = '';
+  
+  if (daysUntilExpiry === undefined || daysUntilExpiry === 0) {
+    statusText = 'Your membership expires today';
+  } else if (daysUntilExpiry < 0) {
+    statusText = `Your membership expired ${Math.abs(daysUntilExpiry)} days ago`;
+  } else {
+    statusText = `Your membership will expire in ${daysUntilExpiry} days`;
+  }
+  
+  return `Hey ${memberName},\n\n${statusText}.\n\nPlease pay now on UPI:\n${upiNumber}`;
+};
+
 export default function NotificationsPage() {
   const { user, gym } = useUserInfo();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -73,7 +92,7 @@ export default function NotificationsPage() {
                         </a>
                         {/* WhatsApp Button */}
                         <a
-                          href={`https://wa.me/${cleanPhoneNumber(notification.memberPhone)}`}
+                          href={`https://wa.me/${cleanPhoneNumber(notification.memberPhone)}?text=${encodeURIComponent(generateWhatsAppMessage(notification.memberName, notification.daysUntilExpiry, gym?.phone || 'N/A'))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`WhatsApp ${notification.memberName}`}
