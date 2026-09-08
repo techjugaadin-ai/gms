@@ -11,7 +11,7 @@ import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils/date';
 import { calculateSubscriptionEndDate, getTodayISODate } from '@/lib/utils/subscription';
 import type { Gym } from '@/types/gym';
-import { Eye, Ban, CheckCircle, RefreshCw, Plus, Download, Trash2 } from 'lucide-react';
+import { Eye, Ban, CheckCircle, RefreshCw, Plus, Download, Trash2, Lock } from 'lucide-react';
 
 const statusBadge = (status: string) => status === 'active'
   ? { variant: 'green' as const, label: 'Active' }
@@ -34,6 +34,10 @@ export default function GymsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Gym | null>(null);
   const [deletePassword, setDeletePassword] = useState('');
   const [deletingData, setDeletingData] = useState(false);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<Gym | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   const fetchGyms = useCallback(async () => {
     const res = await fetch('/api/admin/gyms', { credentials: 'include' });
@@ -147,6 +151,39 @@ export default function GymsPage() {
     setDeletingData(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetPasswordTarget) return;
+
+    if (newPassword !== confirmPassword) {
+      toast('error', 'Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast('error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    setResettingPassword(true);
+    const res = await fetch(`/api/admin/gyms/${resetPasswordTarget.id}/reset-password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ newPassword }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success', 'Password reset successfully');
+      setResetPasswordTarget(null);
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      toast('error', data.error?.message ?? 'Failed to reset password');
+    }
+    setResettingPassword(false);
+  };
+
   return (
     <AppLayout role="SUPER_ADMIN" title="All Gyms">
       <div className="mb-6 flex justify-between items-center">
@@ -214,6 +251,13 @@ export default function GymsPage() {
                             onClick={() => openRenew(g)}
                           >
                             <RefreshCw className="h-4 w-4 text-blue-500" />
+                          </button>
+                          <button
+                            className="p-1.5 rounded hover:bg-purple-50 transition-colors"
+                            title="Reset gym owner password"
+                            onClick={() => setResetPasswordTarget(g)}
+                          >
+                            <Lock className="h-4 w-4 text-purple-600" />
                           </button>
                           <button
                             className="p-1.5 rounded hover:bg-red-50 transition-colors"
@@ -325,6 +369,53 @@ export default function GymsPage() {
           <div className="flex gap-3 justify-end pt-2">
             <Button type="button" variant="outline" onClick={() => { setDeleteTarget(null); setDeletePassword(''); }}>Cancel</Button>
             <Button type="submit" loading={deletingData} className="bg-red-600 hover:bg-red-700 text-white">Delete All Data</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Reset password modal */}
+      <Modal open={!!resetPasswordTarget} onClose={() => { setResetPasswordTarget(null); setNewPassword(''); setConfirmPassword(''); }} title="Reset Gym Owner Password">
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <p className="text-sm text-gray-500">Gym: <strong>{resetPasswordTarget?.name}</strong></p>
+          <p className="text-sm text-gray-500">Owner: <strong>{resetPasswordTarget?.email}</strong></p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              Enter a new password for the gym owner. This will replace their current password.
+            </p>
+          </div>
+          <div>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              New Password
+            </label>
+            <input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password (min 6 characters)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-purple-500 focus:outline-none"
+              required
+              minLength={6}
+            />
+          </div>
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:border-purple-500 focus:outline-none"
+              required
+              minLength={6}
+            />
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="outline" onClick={() => { setResetPasswordTarget(null); setNewPassword(''); setConfirmPassword(''); }}>Cancel</Button>
+            <Button type="submit" loading={resettingPassword}>Reset Password</Button>
           </div>
         </form>
       </Modal>
