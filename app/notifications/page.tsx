@@ -30,7 +30,7 @@ const generateWhatsAppMessage = (
     statusText = `Your membership will expire in ${daysUntilExpiry} days`;
   }
   
-  return `Hey ${memberName},\n\n${statusText}.\n\nPlease pay and send the payment screenshot to:\n${upiNumber}\n\nRegards,\n${gymName || 'Gym'}`;
+  return `Hey ${memberName},\n\n${statusText}.\n\nPlease pay and send the payment screenshot to: ${upiNumber}\n\nRegards,\n${gymName || 'Gym'}`;
 };
 
 export default function NotificationsPage() {
