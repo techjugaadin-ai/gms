@@ -30,7 +30,7 @@ const generateWhatsAppMessage = (
     statusText = `Your membership will expire in ${daysUntilExpiry} days`;
   }
   
-  return `Hey ${memberName},\n\n${statusText}.\n\nRegards,\n${gymName || 'Gym'}`;
+  return `Hey ${memberName},\n\n${statusText}.\n\nPlease pay and send the payment screenshot to:\n${upiNumber}\n\nRegards,\n${gymName || 'Gym'}`;
 };
 
 export default function NotificationsPage() {
@@ -93,7 +93,7 @@ export default function NotificationsPage() {
                         </a>
                         {/* WhatsApp Button */}
                         <a
-                          href={`https://wa.me/${cleanPhoneNumber(notification.memberPhone)}?text=${encodeURIComponent(generateWhatsAppMessage(notification.memberName, notification.daysUntilExpiry, gym?.phone || 'N/A'))}`}
+                          href={`https://wa.me/${cleanPhoneNumber(notification.memberPhone)}?text=${encodeURIComponent(generateWhatsAppMessage(notification.memberName, notification.daysUntilExpiry, gym?.phone || 'N/A', gym?.name))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`WhatsApp ${notification.memberName}`}
